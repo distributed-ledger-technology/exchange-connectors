@@ -1,6 +1,8 @@
 # Exchange Connectors
 
-This module shall provide a range of Exchange Connectors.
+This module provides a range of Exchange Connectors. 
+
+This shall support the emergence of perfect markets by simplifying market access.
 
 ## Centralized Exchanges (CEXes)
 ### Bybit
