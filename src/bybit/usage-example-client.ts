@@ -30,8 +30,8 @@ export class ExampleClient {
 }
 
 
-const apiKey = Deno.args[0]
-const apiSecret = Deno.args[1]
+const apiKey = Deno.args[0] // can't provide you example data here as I can't judge your trading / gambling skills :)
+const apiSecret = Deno.args[1] // can't provide you example data here as I can't judge your trading / gambling skills :)
 
 const exampleClient = new ExampleClient(apiKey, apiSecret)
 
