@@ -38,10 +38,11 @@ await exampleClient.showUsageExamples()
 ```
 
 
-## Decentralized Exchanges (CEXes)
-Under Construction
+## Decentralized Exchanges (DEXes)
+Under Construction  
+Shall we use the web3 deno module (is web3 ready for deno?)?
 
 ### FYX
 https://yfx.io
 
-Shall we use web3 (ready for deno?)?
+
