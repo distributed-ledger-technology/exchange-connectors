@@ -6,10 +6,11 @@ This module shall provide a range of Exchange Connectors.
 ### Bybit
 See also the [Bybit Example Client](https://github.com/michael-spengler/exchange-connectors/blob/main/src/bybit/usage-example-client.ts) and 
 [Bybit Connector](https://github.com/michael-spengler/exchange-connectors/blob/main/src/bybit/bybit-connector.ts) for more usage examples.
+
 ```ts 
 
-import { IExchangeConnector } from "../interfaces/exchange-connector-interface.ts"
-import { BybitConnector } from "./bybit-connector.ts"
+import { IExchangeConnector } from "https://deno.land/x/exchange_connectors/mod-bybit.ts"
+import { BybitConnector } from "https://deno.land/x/exchange_connectors/mod-bybit.ts"
 
 export class ExampleClient {
 
@@ -38,4 +39,9 @@ await exampleClient.showUsageExamples()
 
 
 ## Decentralized Exchanges (CEXes)
+Under Construction
 
+### FYX
+https://yfx.io
+
+Shall we use web3 (ready for deno?)?
