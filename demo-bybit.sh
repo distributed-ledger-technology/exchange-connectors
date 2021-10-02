@@ -1,0 +1,1 @@
+deno run --allow-net demo-bybit.ts <yourAPIKey> <yourAPISecret>
