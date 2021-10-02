@@ -6,11 +6,18 @@ const testSets = [
     {
         input: { longShortDeltaInPercent: 0, liquidityLevel: 20, unrealizedProfitsLong: -10, unrealizedProfitsShort: -10 },
         output: [{ action: "BUY", amount: 0.001, pair: "BTCUSDT" }, { action: "SELL", amount: 0.001, pair: "BTCUSDT" }]
-    }
-    ,
+    },
     {
         input: { longShortDeltaInPercent: 10, liquidityLevel: 20, unrealizedProfitsLong: -10, unrealizedProfitsShort: -10 },
         output: [{ action: "SELL", amount: 0.001, pair: "BTCUSDT" }]
+    },
+    {
+        input: { longShortDeltaInPercent: 10, liquidityLevel: 20, unrealizedProfitsLong: -10, unrealizedProfitsShort: 100 },
+        output: [{ action: "REDUCESHORT", amount: 0.001, pair: "BTCUSDT" }]
+    },
+    {
+        input: { longShortDeltaInPercent: -10, liquidityLevel: 20, unrealizedProfitsLong: 100, unrealizedProfitsShort: -10 },
+        output: [{ action: "REDUCELONG", amount: 0.001, pair: "BTCUSDT" }]
     }
 ]
 
