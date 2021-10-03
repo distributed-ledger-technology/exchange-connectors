@@ -25,7 +25,7 @@ export class InvestmentOptimizer {
     private toolBox: ToolBox // shall be defined properly as soon as we have a long term dex connected
 
 
-    public constructor(private apiKey: string, private apiSecret: string, minimumReserve: number, exchangeConnector: IExchangeConnector) {
+    public constructor(private apiKey: string, private apiSecret: string, minimumReserve: number, exchangeConnector?: IExchangeConnector) {
 
         if (exchangeConnector === undefined) { // giving the possibility for constructor dependency injection 
             this.exchangeConnector = new BybitConnector(apiKey, apiSecret)
