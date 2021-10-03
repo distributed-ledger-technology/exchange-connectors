@@ -2,6 +2,7 @@
 // https://www.math3d.org/2cj0XobI 
 
 import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption } from "./interfaces.ts"
+import { InvestmentCalculator } from "./investment-calculator.ts"
 
 export interface InvestmentDecisionBase {
     longShortDeltaInPercent: number,
@@ -21,6 +22,13 @@ const investmentOptions: InvestmentOption[] = [
 export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     private currentInvestmentAdvices: InvestmentAdvice[] = []
+
+    private investmentCalculator: InvestmentCalculator
+
+
+    public constructor() {
+        this.investmentCalculator = new InvestmentCalculator()
+    }
 
 
     public getInvestmentAdvices(investmentDecisionBase: any): InvestmentAdvice[] {
@@ -47,15 +55,10 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
             case Action.BUY: {
 
-                let addingPointLong = (Math.pow(investmentDecisionBase.liquidityLevel, 1.7) - 170)
-
-                if (investmentDecisionBase.longShortDeltaInPercent > 0) {
-                    addingPointLong = addingPointLong - Math.pow(investmentDecisionBase.longShortDeltaInPercent, 1.3)
-                }
-
-                // console.log(addingPointLong)
+                let addingPointLong = this.investmentCalculator.getAddingPointLong(investmentDecisionBase)
 
                 if (investmentDecisionBase.unrealizedProfitsLong < addingPointLong) {
+
                     const investmentAdvice: InvestmentAdvice = {
                         action: move,
                         amount: investmentOption.minTradingAmount,
@@ -63,6 +66,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     }
 
                     this.currentInvestmentAdvices.push(investmentAdvice)
+
                 }
 
                 break
@@ -72,15 +76,10 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
             case Action.SELL: {
 
-                let addingPointShort = (Math.pow(investmentDecisionBase.liquidityLevel, 1.7) - 170)
-
-                if (investmentDecisionBase.longShortDeltaInPercent < 0) {
-                    addingPointShort = addingPointShort - ((Math.pow(investmentDecisionBase.longShortDeltaInPercent, 2) / 20))
-                }
-
-                // console.log(addingPointShort)
+                let addingPointShort = this.investmentCalculator.getAddingPointShort(investmentDecisionBase)
 
                 if (investmentDecisionBase.unrealizedProfitsShort < addingPointShort) {
+
                     const investmentAdvice: InvestmentAdvice = {
                         action: move,
                         amount: investmentOption.minTradingAmount,
@@ -88,6 +87,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     }
 
                     this.currentInvestmentAdvices.push(investmentAdvice)
+
                 }
 
                 break
@@ -96,12 +96,10 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
             case Action.REDUCELONG: {
 
-                console.log(`calculating closing point for move ${move} with ${investmentDecisionBase.liquidityLevel} ${investmentDecisionBase.longShortDeltaInPercent}`)
-
-                let closingPointLong = (investmentDecisionBase.longShortDeltaInPercent <= 0) ? 24 : (Math.log((1 / Math.pow(investmentDecisionBase.longShortDeltaInPercent, 5)))) + 24
-                console.log(closingPointLong)
+                let closingPointLong = this.investmentCalculator.getClosingPointLong(investmentDecisionBase)
 
                 if (investmentDecisionBase.unrealizedProfitsLong > closingPointLong) {
+
                     const investmentAdvice: InvestmentAdvice = {
                         action: move,
                         amount: investmentOption.minTradingAmount,
@@ -118,10 +116,12 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
             case Action.REDUCESHORT: {
 
-                let closingPointShort = (investmentDecisionBase.longShortDeltaInPercent >= 0) ? 24 : - 1 * (Math.log((1 / Math.pow(investmentDecisionBase.longShortDeltaInPercent, 5)))) + 24
-                console.log(`closingPointShort: ${closingPointShort}`)
+                console.log(`calculating closing point for move ${move} with ${investmentDecisionBase.liquidityLevel} ${investmentDecisionBase.longShortDeltaInPercent}`)
+
+                let closingPointShort = this.investmentCalculator.getClosingPointShort(investmentDecisionBase)
 
                 if (investmentDecisionBase.unrealizedProfitsShort > closingPointShort) {
+
                     const investmentAdvice: InvestmentAdvice = {
                         action: move,
                         amount: investmentOption.minTradingAmount,
@@ -129,6 +129,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     }
 
                     this.currentInvestmentAdvices.push(investmentAdvice)
+
                 }
 
                 break
