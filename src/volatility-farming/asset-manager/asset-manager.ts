@@ -1,8 +1,10 @@
-import { BybitConnector } from "../bybit/bybit-connector.ts"
-import { IExchangeConnector } from "../interfaces/exchange-connector-interface.ts"
+
+
 import { ToolBox } from "./tool-box.ts"
 import { InvestmentDecisionBase, InvestmentAdvisor } from "../investment-advisor/investment-advisor.ts"
 import { InvestmentAdvice } from "../investment-advisor/interfaces.ts"
+import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts"
+import { BybitConnector } from "../../bybit/bybit-connector.ts"
 
 
 export interface IActiveProcess {
@@ -90,6 +92,7 @@ export class AssetManager {
     protected async collectFundamentals() {
 
         this.accountInfo = await this.exchangeConnector.getFuturesAccountData()
+        console.log(this.accountInfo)
         this.positions = await this.exchangeConnector.getPositions()
         this.longPosition = this.positions.filter((p: any) => p.data.side === 'Buy')[0]
         this.shortPosition = this.positions.filter((p: any) => p.data.side === 'Sell')[0]

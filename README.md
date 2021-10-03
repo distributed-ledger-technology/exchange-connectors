@@ -44,6 +44,9 @@ await exampleClient.showUsageExamples()
 Under Construction  
 Shall we use the web3 deno module (is web3 ready for deno?)?
 
+
+### Uniswap
+
 ### FYX
 https://yfx.io
 

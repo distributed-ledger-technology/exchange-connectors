@@ -1,4 +1,4 @@
-import { IExchangeConnector } from "../interfaces/exchange-connector-interface.ts"
+
 import { IActiveProcess } from "./asset-manager.ts"
 import { DealSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"

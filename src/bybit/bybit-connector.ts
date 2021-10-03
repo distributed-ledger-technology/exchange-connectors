@@ -87,9 +87,9 @@ export class BybitConnector implements IExchangeConnector {
 
     public async getPositions() {
         const url = await this.getURLSigned(getEndPoints[1])
-        const result = await Request.get(url)
+        const response = await Request.get(url)
 
-        return result
+        return response.result.filter((p: any) => p.data.size > 0)
     }
 
     public async getRiskLimits() {
