@@ -1,7 +1,8 @@
 import { IExchangeConnector } from "../interfaces/exchange-connector-interface.ts"
-import { IActiveProcess } from "./investment-optimizer.ts"
+import { IActiveProcess } from "./asset-manager.ts"
 import { DealSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
+import { InvestmentAdvice } from "../investment-advisor/interfaces.ts"
 
 export class ToolBox {
 
@@ -11,7 +12,15 @@ export class ToolBox {
 
     }
 
-    private async buyFuture(pair: string, amount: number, reduceOnly: boolean, reason: string, accountInfo: any): Promise<void> {
+    public async applyInvestmentAdvices(investmentAdvices: InvestmentAdvice[]): Promise<void> {
+
+        for (const investmentAdvice of investmentAdvices) {
+            console.log(`applying investment advice: ${investmentAdvice}`)
+        }
+
+    }
+
+    public async buyFuture(pair: string, amount: number, reduceOnly: boolean, reason: string, accountInfo: any): Promise<void> {
 
         const r = await this.activeProcess.exchangeConnector.buyFuture(pair, amount, reduceOnly)
         console.log(r)
@@ -43,7 +52,7 @@ export class ToolBox {
     }
 
 
-    private async sellFuture(pair: string, amount: number, reduceOnly: boolean, reason: string, accountInfo: any): Promise<void> {
+    public async sellFuture(pair: string, amount: number, reduceOnly: boolean, reason: string, accountInfo: any): Promise<void> {
 
         const r = await this.activeProcess.exchangeConnector.sellFuture(pair, amount, reduceOnly)
         console.log(r)
@@ -77,7 +86,7 @@ export class ToolBox {
     }
 
 
-    private getIsLowestSinceX(value: number, array: number[]) {
+    public getIsLowestSinceX(value: number, array: number[]) {
         let counter = 0
 
         for (const e of array) {
@@ -92,7 +101,7 @@ export class ToolBox {
     }
 
 
-    private getIsHighestSinceX(value: number, array: number[]) {
+    public getIsHighestSinceX(value: number, array: number[]) {
         let counter = 0
 
         for (const e of array) {
@@ -128,7 +137,7 @@ export class ToolBox {
     }
 
 
-    private async closePosition(position: any, reason: string, accountInfo: any) {
+    public async closePosition(position: any, reason: string, accountInfo: any) {
 
 
         if (position !== undefined && position.data.side === 'Sell') {
@@ -148,7 +157,7 @@ export class ToolBox {
     }
 
 
-    private getLongShortDeltaInPercent(positions: any[]): number {
+    public getLongShortDeltaInPercent(positions: any[]): number {
 
         const sumOfLongValues = this.getSumOfValues('Buy', positions)
         const sumOfShortValues = this.getSumOfValues('Sell', positions)
@@ -165,7 +174,7 @@ export class ToolBox {
     }
 
 
-    private getSumOfValues(side: string, activePositions: any[]): number {
+    public getSumOfValues(side: string, activePositions: any[]): number {
 
         let sum = 0
 
@@ -180,14 +189,14 @@ export class ToolBox {
     }
 
 
-    private getPNLOfPositionInPercent(position: any): number {
+    public getPNLOfPositionInPercent(position: any): number {
 
         return Number((position.data.unrealised_pnl * 100 / (position.data.position_value / position.data.leverage)).toFixed(2))
 
     }
 
 
-    private async addToPosition(position: any, reason: string, factor = 1, accountInfo: any): Promise<void> {
+    public async addToPosition(position: any, reason: string, factor = 1, accountInfo: any): Promise<void> {
 
         if (position.data.side === 'Sell') {
 
@@ -206,7 +215,7 @@ export class ToolBox {
     }
 
 
-    private async reducePosition(position: any, reason: string = "", accountInfo: any): Promise<void> {
+    public async reducePosition(position: any, reason: string = "", accountInfo: any): Promise<void> {
 
         if (position.data.size > this.activeProcess.tradingAmount) {
 
