@@ -138,6 +138,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
 
             default: throw new Error(`you detected an interesting situation`)
+
         }
 
     }

@@ -18,7 +18,7 @@ export class ExampleClient {
 
     private exchangeConnector: IExchangeConnector
 
-    public constructor(private aPIKey: string, private aPISecret: string) {
+    public constructor(private apiKey: string, private apiSecret: string) {
         this.exchangeConnector = new BybitConnector(apiKey, apiSecret)
     }
 

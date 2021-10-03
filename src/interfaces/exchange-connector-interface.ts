@@ -2,7 +2,7 @@ export interface IExchangeConnector {
 
     getAccountId(): string
 
-    getPositions(): any
+    getPositions(): Promise<any>
 
     getFuturesAccountData(): Promise<any>
 
