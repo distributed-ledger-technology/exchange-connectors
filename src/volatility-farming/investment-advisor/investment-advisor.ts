@@ -102,7 +102,13 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
 
-            const overallPNL = this.getOverallPNLInPercent(longPosition, shortPosition)
+            let overallPNL = 0
+            try {
+                overallPNL = this.getOverallPNLInPercent(longPosition, shortPosition)
+            } catch (error) {
+                // this error can occor when there are no appropriate positions open ... can be ignored
+            }
+
             if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0 || overallPNL > 36) {
 
                 let specificmessage = ""
