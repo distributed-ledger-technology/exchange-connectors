@@ -110,15 +110,10 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         const longShortDeltaInPercent = this.getLongShortDeltaInPercent(investmentDecisionBase.positions)
         const liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
 
-        console.log(`liquidityLevel: ${liquidityLevel}`)
         const longPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
         const shortPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
 
         if (move === Action.PAUSE) { // here just to ensure the following block is executed once
-
-            console.log("hey")
-            console.log(investmentDecisionBase.accountInfo.result.USDT.equity)
-            console.log(investmentDecisionBase.minimumReserve)
 
             if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0) {
 
@@ -199,8 +194,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             }
 
         } else if (longPosition !== undefined && shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
-
-            console.log(`move ${move}`)
 
             switch (move) {
                 case Action.BUY: {

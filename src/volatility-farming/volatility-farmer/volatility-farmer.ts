@@ -64,7 +64,7 @@ export class VolatilityFarmer {
             try {
                 this.mongoService = new MongoService(dbConnectionURL)
             } catch (error) {
-                console.log("shit happened wrt database")
+                console.log(`shit happened wrt database: ${error.message}`)
             }
 
         }
@@ -119,7 +119,6 @@ export class VolatilityFarmer {
     protected async collectFundamentals() {
 
         this.accountInfo = await this.exchangeConnector.getFuturesAccountData()
-        console.log(this.accountInfo)
         this.positions = await this.exchangeConnector.getPositions()
 
         if (this.activeProcess.iterationCounter === 1) {
@@ -132,19 +131,21 @@ export class VolatilityFarmer {
 
         this.accountInfoCash.equity = this.accountInfo.result.USDT.equity
         this.accountInfoCash.avaliableBalance = this.accountInfo.result.USDT.available_balance
-        this.accountInfoCash.longPositionSize = longPosition.data.size
-        this.accountInfoCash.longPositionPNLInPercent = this.investmentAdvisor.getPNLOfPositionInPercent(longPosition)
-        this.accountInfoCash.shortPositionSize = shortPosition.data.size
-        this.accountInfoCash.shortPositionPNLInPercent = this.investmentAdvisor.getPNLOfPositionInPercent(shortPosition)
-        this.accountInfoCash.overallUnrealizedPNL = this.investmentAdvisor.getOverallPNLInPercent(longPosition, shortPosition)
-        this.accountInfoCash.longShortDeltaInPercent = this.investmentAdvisor.getLongShortDeltaInPercent(this.positions)
+        if (longPosition !== undefined && shortPosition !== undefined) {
+            this.accountInfoCash.longPositionSize = longPosition.data.size
+            this.accountInfoCash.shortPositionSize = shortPosition.data.size
+            this.accountInfoCash.longPositionPNLInPercent = this.investmentAdvisor.getPNLOfPositionInPercent(longPosition)
+            this.accountInfoCash.shortPositionPNLInPercent = this.investmentAdvisor.getPNLOfPositionInPercent(shortPosition)
+            this.accountInfoCash.overallUnrealizedPNL = this.investmentAdvisor.getOverallPNLInPercent(longPosition, shortPosition)
+            this.accountInfoCash.longShortDeltaInPercent = this.investmentAdvisor.getLongShortDeltaInPercent(this.positions)
+        }
 
         try {
             if (this.mongoService !== undefined) {
                 await this.mongoService.updateAccountInfo(this.accountInfoCash)
             }
         } catch (error) {
-            console.log("shit happened wrt database")
+            console.log(`shit happened wrt database: ${error.message}`)
         }
     }
 
@@ -163,8 +164,9 @@ export class VolatilityFarmer {
 
     protected async applyInvestmentAdvices(investmentAdvices: InvestmentAdvice[]): Promise<void> {
 
+        console.log(`applying ${investmentAdvices.length} investment advices`)
+
         for (const investmentAdvice of investmentAdvices) {
-            console.log(`applying investment advice: ${investmentAdvice}`)
 
             if (investmentAdvice.action === Action.PAUSE) {
                 this.activeProcess.pauseCounter = 1000
@@ -211,7 +213,7 @@ export class VolatilityFarmer {
                             await this.mongoService.saveDeal(deal)
                         }
                     } catch (error) {
-                        console.log("shit happened wrt database")
+                        console.log(`shit happened wrt database: ${error.message}`)
                     }
 
                 }

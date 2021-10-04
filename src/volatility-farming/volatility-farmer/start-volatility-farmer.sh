@@ -1,0 +1,1 @@
+deno run --allow-net --allow-read --unstable src/volatility-farming/volatility-farmer/start-volatility-farmer.ts <apiKey> <apiSecret> <dbUser> <dbPassword>
