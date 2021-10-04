@@ -20,7 +20,7 @@ export interface IActiveProcess {
 }
 
 
-export class AssetManager {
+export class VolatilityFarmer {
 
     public static activeProcesses: IActiveProcess[] = []
 
@@ -57,7 +57,7 @@ export class AssetManager {
             tradingAmount: 0.001
         }
 
-        AssetManager.activeProcesses.push(this.activeProcess)
+        VolatilityFarmer.activeProcesses.push(this.activeProcess)
 
         if (dbConnectionURL !== undefined) {
 
