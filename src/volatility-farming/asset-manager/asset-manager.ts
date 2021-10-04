@@ -4,7 +4,7 @@ import { InvestmentDecisionBase, InvestmentAdvisor } from "../investment-advisor
 import { Action, InvestmentAdvice } from "../investment-advisor/interfaces.ts"
 import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts"
 import { BybitConnector } from "../../bybit/bybit-connector.ts"
-import { DealSchema } from "./persistency/interfaces.ts"
+import { AccountInfoSchema, DealSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
 
 
@@ -31,9 +31,11 @@ export class AssetManager {
     private minimumReserve: number = 0
     private investmentDecisionBase: InvestmentDecisionBase | undefined
     private mongoService: MongoService | undefined
+    private accountInfoCash: AccountInfoSchema
 
 
-    public constructor(private apiKey: string, private apiSecret: string, minimumReserve: number, exchangeConnector?: IExchangeConnector) {
+
+    public constructor(private apiKey: string, private apiSecret: string, minimumReserve: number, exchangeConnector?: IExchangeConnector, dbConnectionURL?: string) {
 
         if (exchangeConnector === undefined) { // giving the possibility for constructor dependency injection 
             this.exchangeConnector = new BybitConnector(apiKey, apiSecret)
@@ -53,6 +55,30 @@ export class AssetManager {
         }
 
         AssetManager.activeProcesses.push(this.activeProcess)
+
+        if (dbConnectionURL !== undefined) {
+
+            try {
+                this.mongoService = new MongoService(dbConnectionURL)
+            } catch (error) {
+                console.log("shit happened wrt database")
+            }
+
+        }
+
+        this.accountInfoCash = {
+            _id: { $oid: "" },
+            apiKey,
+            equity: 0,
+            avaliableBalance: 0,
+            longPositionSize: 0,
+            longPositionPNLInPercent: 0,
+            shortPositionSize: 0,
+            shortPositionPNLInPercent: 0,
+            longShortDeltaInPercent: 0,
+            overallUnrealizedPNL: 0,
+            botStatus: 'active'
+        }
 
     }
 
