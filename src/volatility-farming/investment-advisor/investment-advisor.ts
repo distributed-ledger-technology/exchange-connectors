@@ -1,4 +1,6 @@
 
+// this is a slightly opinionated (long) investment advisor
+// it serves edcucational purposes and shall inspire friends to implement different strategies and apply them within this network
 // https://www.math3d.org/2cj0XobI 
 
 import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption } from "./interfaces.ts"
