@@ -11,6 +11,7 @@ export interface InvestmentAdvice {
     action: Action,
     amount: number
     pair: string,
+    reason: string
 }
 
 export interface InvestmentOption {

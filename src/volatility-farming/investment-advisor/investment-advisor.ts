@@ -87,13 +87,14 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             console.log("hey")
             console.log(investmentDecisionBase.accountInfo.result.USDT.equity)
             console.log(investmentDecisionBase.minimumReserve)
-            if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0) {
 
+            if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0) {
 
                 const investmentAdvice: InvestmentAdvice = {
                     action: Action.REDUCELONG,
                     amount: longPosition.data.size,
                     pair: investmentOption.pair,
+                    reason: `it seems we shall close ${investmentOption.pair} long due to a liquidity crisis`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice)
@@ -102,6 +103,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     action: Action.REDUCESHORT,
                     amount: longPosition.data.size,
                     pair: investmentOption.pair,
+                    reason: `it seems we shall close ${investmentOption.pair} short due to a liquidity crisis`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice2)
@@ -110,6 +112,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     action: Action.PAUSE,
                     amount: 0,
                     pair: '',
+                    reason: `it seems we shall pause the game due to a liquidity crisis`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice3)
@@ -122,6 +125,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     action: Action.BUY,
                     amount: investmentOption.minTradingAmount,
                     pair: investmentOption.pair,
+                    reason: `it seems we shall open a ${investmentOption.pair} long position to play the game`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice)
@@ -135,6 +139,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     action: Action.SELL,
                     amount: investmentOption.minTradingAmount,
                     pair: investmentOption.pair,
+                    reason: `it seems we shall open a ${investmentOption.pair} short position to play the game`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice)
@@ -146,6 +151,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     action: Action.BUY,
                     amount: investmentOption.minTradingAmount,
                     pair: investmentOption.pair,
+                    reason: `it seems we shall enhance our ${investmentOption.pair} long position to narrow down the diff pnl`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice)
@@ -154,6 +160,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     action: Action.SELL,
                     amount: investmentOption.minTradingAmount,
                     pair: investmentOption.pair,
+                    reason: `it seems we shall enhance our ${investmentOption.pair} short position to narrow down the diff pnl`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice2)
@@ -174,6 +181,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                             action: Action.BUY,
                             amount: investmentOption.minTradingAmount,
                             pair: investmentOption.pair,
+                            reason: `it seems we shall enhance our ${investmentOption.pair} long position due to a great price`
                         }
 
                         this.currentInvestmentAdvices.push(investmentAdvice)
@@ -195,6 +203,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                             action: Action.SELL,
                             amount: investmentOption.minTradingAmount,
                             pair: investmentOption.pair,
+                            reason: `it seems we shall enhance our ${investmentOption.pair} short position due to a great price`
                         }
 
                         this.currentInvestmentAdvices.push(investmentAdvice)
@@ -217,6 +226,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                             action: Action.REDUCELONG,
                             amount: investmentOption.minTradingAmount,
                             pair: investmentOption.pair,
+                            reason: `it seems we shall reduce our ${investmentOption.pair} long position to realize some profits`
                         }
 
                         this.currentInvestmentAdvices.push(investmentAdvice)
@@ -241,6 +251,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                             action: Action.REDUCESHORT,
                             amount: investmentOption.minTradingAmount,
                             pair: investmentOption.pair,
+                            reason: `it seems we shall reduce our ${investmentOption.pair} short position to realize some profits`
                         }
 
                         this.currentInvestmentAdvices.push(investmentAdvice)
