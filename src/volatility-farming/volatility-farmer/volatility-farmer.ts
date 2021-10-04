@@ -6,7 +6,7 @@ import { IExchangeConnector } from "../../interfaces/exchange-connector-interfac
 import { BybitConnector } from "../../bybit/bybit-connector.ts"
 import { AccountInfoSchema, DealSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
-import { sleep, sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep/mod.ts";
+import { sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep/mod.ts";
 
 export interface IActiveProcess {
     apiKey: string,
@@ -99,7 +99,7 @@ export class VolatilityFarmer {
                     this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
                 }
             } else {
-                await sleepRandomAmountOfSeconds(0, intervalLengthInSeconds, true)
+                await sleepRandomAmountOfSeconds(0, intervalLengthInSeconds - 1, false)
                 await this.playTheGame()
             }
 

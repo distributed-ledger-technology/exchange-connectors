@@ -100,7 +100,20 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         const longPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
         const shortPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
 
-        if (move === Action.PAUSE) { // here just to ensure the following block is executed once
+        let addingPointLong = -1000000
+        let addingPointShort = -1000000
+        let closingPointLong = 1000000
+        let closingPointShort = 1000000
+
+        if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
+
+            addingPointLong = this.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
+            addingPointShort = this.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
+            closingPointLong = this.getClosingPointLong(longShortDeltaInPercent)
+            closingPointShort = this.getClosingPointShort(longShortDeltaInPercent)
+
+            console.log(`aPL: ${addingPointLong} - aPS: ${addingPointShort}`)
+            console.log(`cPL: ${closingPointLong} - cPS: ${closingPointLong}`)
 
             if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0) {
 
@@ -181,14 +194,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             }
 
         } else if (longPosition !== undefined && shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
-
-            let addingPointLong = this.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
-            let addingPointShort = this.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
-            let closingPointLong = this.getClosingPointLong(longShortDeltaInPercent)
-            let closingPointShort = this.getClosingPointShort(longShortDeltaInPercent)
-
-            console.log(`aPL: ${addingPointLong} - aPS: ${addingPointShort}`)
-            console.log(`cPL: ${closingPointLong} - cPS: ${closingPointLong}`)
 
             switch (move) {
                 case Action.BUY: {
