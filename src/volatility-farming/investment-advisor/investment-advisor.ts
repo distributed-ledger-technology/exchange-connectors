@@ -187,7 +187,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             let closingPointLong = this.getClosingPointLong(longShortDeltaInPercent)
             let closingPointShort = this.getClosingPointShort(longShortDeltaInPercent)
 
-            console.log(`minR ${investmentDecisionBase.minimumReserve} - e: ${investmentDecisionBase.accountInfo.result.USDT.equity}`)
             console.log(`aPL: ${addingPointLong} - aPS: ${addingPointShort}`)
             console.log(`cPL: ${closingPointLong} - cPS: ${closingPointLong}`)
 

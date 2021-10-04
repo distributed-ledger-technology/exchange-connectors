@@ -6,7 +6,7 @@ import { IExchangeConnector } from "../../interfaces/exchange-connector-interfac
 import { BybitConnector } from "../../bybit/bybit-connector.ts"
 import { AccountInfoSchema, DealSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
-
+import { sleep, sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep/mod.ts";
 
 export interface IActiveProcess {
     apiKey: string,
@@ -99,6 +99,7 @@ export class VolatilityFarmer {
                     this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
                 }
             } else {
+                await sleepRandomAmountOfSeconds(0, intervalLengthInSeconds, true)
                 await this.playTheGame()
             }
 
@@ -140,6 +141,8 @@ export class VolatilityFarmer {
             this.accountInfoCash.shortPositionPNLInPercent = this.investmentAdvisor.getPNLOfPositionInPercent(shortPosition)
             this.accountInfoCash.overallUnrealizedPNL = this.investmentAdvisor.getOverallPNLInPercent(longPosition, shortPosition)
             this.accountInfoCash.longShortDeltaInPercent = this.investmentAdvisor.getLongShortDeltaInPercent(this.positions)
+
+            console.log(`minR ${this.activeProcess.minimumReserve} - e: ${this.accountInfo.result.USDT.equity}`)
         }
 
         try {
