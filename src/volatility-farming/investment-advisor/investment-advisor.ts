@@ -58,8 +58,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         this.currentInvestmentAdvices = []
 
         for (const investmentOption of investmentOptions) {
-            console.log("ups")
-            console.log(Object.values(Action))
             for (const move of Object.values(Action)) {
 
                 this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
@@ -195,10 +193,18 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         } else if (longPosition !== undefined && shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
+            let addingPointLong = this.investmentCalculator.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
+            let addingPointShort = this.investmentCalculator.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
+            let closingPointLong = this.investmentCalculator.getClosingPointLong(longShortDeltaInPercent)
+            let closingPointShort = this.investmentCalculator.getClosingPointShort(longShortDeltaInPercent)
+
+            console.log(`minR ${investmentDecisionBase.minimumReserve} - e: ${investmentDecisionBase.accountInfo.result.USDT.equity}`)
+            console.log(`aPL: ${addingPointLong} - aPS: ${addingPointShort}`)
+            console.log(`cPL: ${closingPointLong} - cPS: ${closingPointLong}`)
+
             switch (move) {
                 case Action.BUY: {
 
-                    let addingPointLong = this.investmentCalculator.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
 
                     if (this.getPNLOfPositionInPercent(longPosition) < addingPointLong) {
 
@@ -220,7 +226,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
                 case Action.SELL: {
 
-                    let addingPointShort = this.investmentCalculator.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
+
 
                     if (this.getPNLOfPositionInPercent(shortPosition) < addingPointShort) {
 
@@ -241,10 +247,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
                 case Action.REDUCELONG: {
 
-                    let closingPointLong = this.investmentCalculator.getClosingPointLong(longShortDeltaInPercent)
-
-                    console.log(`closingPointLong: ${closingPointLong}`)
-
                     if (this.getPNLOfPositionInPercent(longPosition) > closingPointLong) {
 
                         const investmentAdvice: InvestmentAdvice = {
@@ -263,12 +265,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
 
                 case Action.REDUCESHORT: {
-
-                    // console.log(`calculating closing point for move ${move} with ${investmentDecisionBase.liquidityLevel} ${investmentDecisionBase.longShortDeltaInPercent}`)
-
-                    let closingPointShort = this.investmentCalculator.getClosingPointShort(longShortDeltaInPercent)
-
-                    console.log(`closingPointShort: ${closingPointShort} --> ${this.getPNLOfPositionInPercent(shortPosition)}`)
 
                     if (this.getPNLOfPositionInPercent(shortPosition) > closingPointShort) {
 
