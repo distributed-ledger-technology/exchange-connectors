@@ -1,10 +1,11 @@
 
 
-import { ToolBox } from "./tool-box.ts"
 import { InvestmentDecisionBase, InvestmentAdvisor } from "../investment-advisor/investment-advisor.ts"
 import { Action, InvestmentAdvice } from "../investment-advisor/interfaces.ts"
 import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts"
 import { BybitConnector } from "../../bybit/bybit-connector.ts"
+import { DealSchema } from "./persistency/interfaces.ts"
+import { MongoService } from "./persistency/mongo-service.ts"
 
 
 export interface IActiveProcess {
@@ -27,11 +28,9 @@ export class AssetManager {
     private exchangeConnector: IExchangeConnector
     private accountInfo: any // shall be defined properly as soon as we have a long term dex connected
     private positions: any[] = [] // shall be defined properly as soon as we have a long term dex connected
-    private toolBox: ToolBox
-    private longPosition: any // shall be defined properly as soon as we have a long term dex connected
-    private shortPosition: any // shall be defined properly as soon as we have a long term dex connected
     private minimumReserve: number = 0
     private investmentDecisionBase: InvestmentDecisionBase | undefined
+    private mongoService: MongoService | undefined
 
 
     public constructor(private apiKey: string, private apiSecret: string, minimumReserve: number, exchangeConnector?: IExchangeConnector) {
@@ -54,8 +53,6 @@ export class AssetManager {
         }
 
         AssetManager.activeProcesses.push(this.activeProcess)
-
-        this.toolBox = new ToolBox(this.activeProcess)
 
     }
 
@@ -95,8 +92,6 @@ export class AssetManager {
         this.accountInfo = await this.exchangeConnector.getFuturesAccountData()
         console.log(this.accountInfo)
         this.positions = await this.exchangeConnector.getPositions()
-        this.longPosition = this.positions.filter((p: any) => p.data.side === 'Buy')[0]
-        this.shortPosition = this.positions.filter((p: any) => p.data.side === 'Sell')[0]
 
         if (this.activeProcess.iterationCounter === 1) {
             console.log(`setting minimumReserve to ${this.accountInfo.result.USDT.equity * 0.9}`)
@@ -125,10 +120,54 @@ export class AssetManager {
             console.log(`applying investment advice: ${investmentAdvice}`)
 
             if (investmentAdvice.action === Action.PAUSE) {
-
-                this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
                 this.activeProcess.pauseCounter = 1000
+            } else {
 
+                let r
+
+                if (investmentAdvice.action === Action.BUY) {
+
+                    r = await this.activeProcess.exchangeConnector.buyFuture(investmentAdvice.pair, investmentAdvice.amount, false)
+
+                } else if (investmentAdvice.action === Action.SELL) {
+
+                    r = await this.activeProcess.exchangeConnector.sellFuture(investmentAdvice.pair, investmentAdvice.amount, false)
+
+                } else if (investmentAdvice.action === Action.REDUCELONG) {
+
+                    r = await this.activeProcess.exchangeConnector.sellFuture(investmentAdvice.pair, investmentAdvice.amount, true)
+
+                } else if (investmentAdvice.action === Action.REDUCESHORT) {
+
+                    r = await this.activeProcess.exchangeConnector.buyFuture(investmentAdvice.pair, investmentAdvice.amount, true)
+
+                }
+
+                console.log(r)
+
+                if (r.ret_code === 0) {
+
+                    const deal: DealSchema = {
+                        _id: { $oid: "" },
+                        apiKey: this.activeProcess.apiKey,
+                        utcTime: new Date().toISOString(),
+                        action: investmentAdvice.action,
+                        reduceOnly: false,
+                        reason: investmentAdvice.reason,
+                        asset: investmentAdvice.pair,
+                        equityBeforeThisDeal: this.accountInfo.result.USDT.equity
+                    }
+
+
+                    try {
+                        if (this.mongoService !== undefined) {
+                            await this.mongoService.saveDeal(deal)
+                        }
+                    } catch (error) {
+                        console.log("shit happened wrt database")
+                    }
+
+                }
             }
         }
 
