@@ -28,7 +28,6 @@ export class VolatilityFarmer {
     private exchangeConnector: IExchangeConnector
     private accountInfo: any // shall be defined properly as soon as we have a long term dex connected
     private positions: any[] = [] // shall be defined properly as soon as we have a long term dex connected
-    private minimumReserve: number = 0
     private investmentDecisionBase: InvestmentDecisionBase | undefined
     private mongoService: MongoService | undefined
     private accountInfoCash: AccountInfoSchema
@@ -96,6 +95,9 @@ export class VolatilityFarmer {
 
             if (this.activeProcess.pauseCounter > 0) {
                 this.activeProcess.pauseCounter--
+                if (this.activeProcess.pauseCounter === 0) {
+                    this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
+                }
             } else {
                 await this.playTheGame()
             }
@@ -121,9 +123,9 @@ export class VolatilityFarmer {
         this.accountInfo = await this.exchangeConnector.getFuturesAccountData()
         this.positions = await this.exchangeConnector.getPositions()
 
-        if (this.activeProcess.iterationCounter === 1) {
+        if (this.activeProcess.iterationCounter === 1 || this.activeProcess.iterationCounter % 5000 === 0) {
             console.log(`setting minimumReserve to ${this.accountInfo.result.USDT.equity * 0.9}`)
-            this.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
+            this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
         }
 
         const longPosition = this.positions.filter((p: any) => p.data.side === 'Buy')[0]
@@ -154,7 +156,7 @@ export class VolatilityFarmer {
         this.investmentDecisionBase = {
             accountInfo: this.accountInfo,
             positions: this.positions,
-            minimumReserve: this.minimumReserve
+            minimumReserve: this.activeProcess.minimumReserve
         }
 
         return this.investmentAdvisor.getInvestmentAdvices(this.investmentDecisionBase)
