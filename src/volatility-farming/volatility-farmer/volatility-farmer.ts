@@ -1,12 +1,12 @@
 
 
 import { InvestmentDecisionBase, InvestmentAdvisor } from "../investment-advisor/investment-advisor.ts"
-import { Action, InvestmentAdvice } from "../investment-advisor/interfaces.ts"
+import { Action, IInvestmentAdvisor, InvestmentAdvice } from "../investment-advisor/interfaces.ts"
 import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts"
 import { BybitConnector } from "../../bybit/bybit-connector.ts"
 import { AccountInfoSchema, DealSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
-import { sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep/mod.ts";
+import { sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
 
 export interface IActiveProcess {
     apiKey: string,
@@ -31,11 +31,11 @@ export class VolatilityFarmer {
     private investmentDecisionBase: InvestmentDecisionBase | undefined
     private mongoService: MongoService | undefined
     private accountInfoCash: AccountInfoSchema
-    private investmentAdvisor: InvestmentAdvisor
+    private investmentAdvisor: IInvestmentAdvisor
 
 
 
-    public constructor(private apiKey: string, private apiSecret: string, minimumReserve: number, exchangeConnector?: IExchangeConnector, dbConnectionURL?: string) {
+    public constructor(private apiKey: string, private apiSecret: string, minimumReserve: number, exchangeConnector?: IExchangeConnector, dbConnectionURL?: string, investmentAdvisor?: IInvestmentAdvisor) {
 
         if (exchangeConnector === undefined) { // giving the possibility for constructor dependency injection 
             this.exchangeConnector = new BybitConnector(apiKey, apiSecret)
@@ -43,7 +43,11 @@ export class VolatilityFarmer {
             this.exchangeConnector = exchangeConnector
         }
 
-        this.investmentAdvisor = new InvestmentAdvisor()
+        if (investmentAdvisor === undefined) { // giving the possibility for constructor dependency injection 
+            this.investmentAdvisor = new InvestmentAdvisor()
+        } else {
+            this.investmentAdvisor = investmentAdvisor
+        }
 
         this.activeProcess = {
             apiKey,
