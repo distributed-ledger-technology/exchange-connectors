@@ -2,7 +2,7 @@
 
 import { ToolBox } from "./tool-box.ts"
 import { InvestmentDecisionBase, InvestmentAdvisor } from "../investment-advisor/investment-advisor.ts"
-import { InvestmentAdvice } from "../investment-advisor/interfaces.ts"
+import { Action, InvestmentAdvice } from "../investment-advisor/interfaces.ts"
 import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts"
 import { BybitConnector } from "../../bybit/bybit-connector.ts"
 
@@ -30,6 +30,7 @@ export class AssetManager {
     private toolBox: ToolBox
     private longPosition: any // shall be defined properly as soon as we have a long term dex connected
     private shortPosition: any // shall be defined properly as soon as we have a long term dex connected
+    private minimumReserve: number = 0
     private investmentDecisionBase: InvestmentDecisionBase | undefined
 
 
@@ -84,7 +85,7 @@ export class AssetManager {
 
         const investmentAdvices = await this.getInvestmentAdvices()
 
-        await this.toolBox.applyInvestmentAdvices(investmentAdvices)
+        await this.applyInvestmentAdvices(investmentAdvices)
 
     }
 
@@ -97,6 +98,10 @@ export class AssetManager {
         this.longPosition = this.positions.filter((p: any) => p.data.side === 'Buy')[0]
         this.shortPosition = this.positions.filter((p: any) => p.data.side === 'Sell')[0]
 
+        if (this.activeProcess.iterationCounter === 1) {
+            console.log(`setting minimumReserve to ${this.accountInfo.result.USDT.equity * 0.9}`)
+            this.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
+        }
     }
 
     protected async getInvestmentAdvices(): Promise<InvestmentAdvice[]> {
@@ -104,6 +109,7 @@ export class AssetManager {
         this.investmentDecisionBase = {
             accountInfo: this.accountInfo,
             positions: this.positions,
+            minimumReserve: this.minimumReserve
         }
 
         const investmentAdvisor = new InvestmentAdvisor()
@@ -112,6 +118,21 @@ export class AssetManager {
 
     }
 
+
+    protected async applyInvestmentAdvices(investmentAdvices: InvestmentAdvice[]): Promise<void> {
+
+        for (const investmentAdvice of investmentAdvices) {
+            console.log(`applying investment advice: ${investmentAdvice}`)
+
+            if (investmentAdvice.action === Action.PAUSE) {
+
+                this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
+                this.activeProcess.pauseCounter = 1000
+
+            }
+        }
+
+    }
 
     protected checkParameters(intervalLengthInSeconds: number): void {
 

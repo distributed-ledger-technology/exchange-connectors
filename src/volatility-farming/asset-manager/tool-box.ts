@@ -2,7 +2,7 @@
 import { IActiveProcess } from "./asset-manager.ts"
 import { DealSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
-import { InvestmentAdvice } from "../investment-advisor/interfaces.ts"
+import { Action, InvestmentAdvice } from "../investment-advisor/interfaces.ts"
 
 export class ToolBox {
 
@@ -12,13 +12,7 @@ export class ToolBox {
 
     }
 
-    public async applyInvestmentAdvices(investmentAdvices: InvestmentAdvice[]): Promise<void> {
 
-        for (const investmentAdvice of investmentAdvices) {
-            console.log(`applying investment advice: ${investmentAdvice}`)
-        }
-
-    }
 
     public async buyFuture(pair: string, amount: number, reduceOnly: boolean, reason: string, accountInfo: any): Promise<void> {
 

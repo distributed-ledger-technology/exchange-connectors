@@ -8,6 +8,7 @@ import { ToolBox } from "../asset-manager/tool-box.ts"
 export interface InvestmentDecisionBase {
     accountInfo: any,
     positions: any,
+    minimumReserve: number
     // longShortDeltaInPercent: number,
     // liquidityLevel: number,
     // unrealizedProfitsLong: number
@@ -58,7 +59,8 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         this.currentInvestmentAdvices = []
 
         for (const investmentOption of investmentOptions) {
-
+            console.log("ups")
+            console.log(Object.values(Action))
             for (const move of Object.values(Action)) {
 
                 this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
@@ -80,7 +82,39 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         const longPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
         const shortPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
 
-        if (move === Action.BUY) { // here just to ensure the following block is executed once
+        if (move === Action.PAUSE) { // here just to ensure the following block is executed once
+
+            console.log("hey")
+            console.log(investmentDecisionBase.accountInfo.result.USDT.equity)
+            console.log(investmentDecisionBase.minimumReserve)
+            if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0) {
+
+
+                const investmentAdvice: InvestmentAdvice = {
+                    action: Action.REDUCELONG,
+                    amount: longPosition.data.size,
+                    pair: investmentOption.pair,
+                }
+
+                this.currentInvestmentAdvices.push(investmentAdvice)
+
+                const investmentAdvice2: InvestmentAdvice = {
+                    action: Action.REDUCESHORT,
+                    amount: longPosition.data.size,
+                    pair: investmentOption.pair,
+                }
+
+                this.currentInvestmentAdvices.push(investmentAdvice2)
+
+                const investmentAdvice3: InvestmentAdvice = {
+                    action: Action.PAUSE,
+                    amount: 0,
+                    pair: '',
+                }
+
+                this.currentInvestmentAdvices.push(investmentAdvice3)
+
+            }
 
             if (longPosition === undefined) {
 
@@ -125,32 +159,11 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                 this.currentInvestmentAdvices.push(investmentAdvice2)
             }
 
-            if (liquidityLevel === 0) {
+        } else if (longPosition !== undefined && shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
-                const investmentAdvice: InvestmentAdvice = {
-                    action: Action.REDUCELONG,
-                    amount: longPosition.data.size,
-                    pair: investmentOption.pair,
-                }
-
-                this.currentInvestmentAdvices.push(investmentAdvice)
-
-                const investmentAdvice2: InvestmentAdvice = {
-                    action: Action.REDUCESHORT,
-                    amount: longPosition.data.size,
-                    pair: investmentOption.pair,
-                }
-
-                this.currentInvestmentAdvices.push(investmentAdvice2)
-
-            }
-
-        }
-
-        if (longPosition !== undefined && shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
+            console.log(`move ${move}`)
 
             switch (move) {
-
                 case Action.BUY: {
 
                     let addingPointLong = this.investmentCalculator.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
@@ -158,7 +171,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     if (this.getPNLOfPositionInPercent(longPosition) < addingPointLong) {
 
                         const investmentAdvice: InvestmentAdvice = {
-                            action: move,
+                            action: Action.BUY,
                             amount: investmentOption.minTradingAmount,
                             pair: investmentOption.pair,
                         }
@@ -179,7 +192,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     if (this.getPNLOfPositionInPercent(shortPosition) < addingPointShort) {
 
                         const investmentAdvice: InvestmentAdvice = {
-                            action: move,
+                            action: Action.SELL,
                             amount: investmentOption.minTradingAmount,
                             pair: investmentOption.pair,
                         }
@@ -201,7 +214,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     if (this.getPNLOfPositionInPercent(longPosition) > closingPointLong) {
 
                         const investmentAdvice: InvestmentAdvice = {
-                            action: move,
+                            action: Action.REDUCELONG,
                             amount: investmentOption.minTradingAmount,
                             pair: investmentOption.pair,
                         }
@@ -220,10 +233,12 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
                     let closingPointShort = this.investmentCalculator.getClosingPointShort(longShortDeltaInPercent)
 
+                    console.log(`closingPointShort: ${closingPointShort} --> ${this.getPNLOfPositionInPercent(shortPosition)}`)
+
                     if (this.getPNLOfPositionInPercent(shortPosition) > closingPointShort) {
 
                         const investmentAdvice: InvestmentAdvice = {
-                            action: move,
+                            action: Action.REDUCESHORT,
                             amount: investmentOption.minTradingAmount,
                             pair: investmentOption.pair,
                         }
@@ -235,7 +250,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     break
 
                 }
-
 
                 default: throw new Error(`you detected an interesting situation`)
 
