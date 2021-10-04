@@ -100,23 +100,27 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         const longPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
         const shortPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
 
-        let addingPointLong = this.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
-        let addingPointShort = this.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
-        let closingPointLong = this.getClosingPointLong(longShortDeltaInPercent)
-        let closingPointShort = this.getClosingPointShort(longShortDeltaInPercent)
-
         if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
 
-            console.log(`aPL: ${addingPointLong} - aPS: ${addingPointShort}`)
-            console.log(`cPL: ${closingPointLong} - cPS: ${closingPointLong}`)
+            const overallPNL = this.getOverallPNLInPercent(longPosition, shortPosition)
+            if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0 || overallPNL > 36) {
 
-            if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0) {
+                let specificmessage = ""
+
+                if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve) {
+                    specificmessage = "an equity drop"
+                } else if (liquidityLevel === 0) {
+                    specificmessage = "a liquidity crisis"
+
+                } else if (overallPNL > 36) {
+                    specificmessage = `an overall PNL of ${overallPNL}`
+                }
 
                 const investmentAdvice: InvestmentAdvice = {
                     action: Action.REDUCELONG,
                     amount: longPosition.data.size,
                     pair: investmentOption.pair,
-                    reason: `it seems we shall close ${investmentOption.pair} long due to a liquidity crisis`
+                    reason: `it seems we shall close ${investmentOption.pair} long due to ${specificmessage}`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice)
@@ -125,19 +129,21 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     action: Action.REDUCESHORT,
                     amount: longPosition.data.size,
                     pair: investmentOption.pair,
-                    reason: `it seems we shall close ${investmentOption.pair} short due to a liquidity crisis`
+                    reason: `it seems we shall close ${investmentOption.pair} short due to ${specificmessage}`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice2)
 
-                const investmentAdvice3: InvestmentAdvice = {
-                    action: Action.PAUSE,
-                    amount: 0,
-                    pair: '',
-                    reason: `it seems we shall pause the game due to a liquidity crisis`
-                }
+                if (overallPNL <= 36) {
+                    const investmentAdvice3: InvestmentAdvice = {
+                        action: Action.PAUSE,
+                        amount: 0,
+                        pair: '',
+                        reason: `it seems we shall pause the game due to ${specificmessage}`
+                    }
 
-                this.currentInvestmentAdvices.push(investmentAdvice3)
+                    this.currentInvestmentAdvices.push(investmentAdvice3)
+                }
 
             }
 
@@ -193,7 +199,12 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             switch (move) {
                 case Action.BUY: {
 
-                    if (this.getPNLOfPositionInPercent(longPosition) < addingPointLong) {
+                    let addingPointLong = this.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
+                    let pnlLong = this.getPNLOfPositionInPercent(longPosition)
+
+                    console.log(`aPL: ${addingPointLong.toFixed(2)} (${pnlLong})`)
+
+                    if (pnlLong < addingPointLong) {
 
                         const investmentAdvice: InvestmentAdvice = {
                             action: Action.BUY,
@@ -214,8 +225,12 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                 case Action.SELL: {
 
 
+                    let addingPointShort = this.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
+                    let pnlShort = this.getPNLOfPositionInPercent(shortPosition)
 
-                    if (this.getPNLOfPositionInPercent(shortPosition) < addingPointShort) {
+                    console.log(`aPS: ${addingPointShort.toFixed(2)} (${pnlShort})`)
+
+                    if (pnlShort < addingPointShort) {
 
                         const investmentAdvice: InvestmentAdvice = {
                             action: Action.SELL,
@@ -234,7 +249,12 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
                 case Action.REDUCELONG: {
 
-                    if (this.getPNLOfPositionInPercent(longPosition) > closingPointLong) {
+                    let closingPointLong = this.getClosingPointLong(longShortDeltaInPercent)
+                    let pnlLong = this.getPNLOfPositionInPercent(longPosition)
+
+                    console.log(`cPL: ${closingPointLong.toFixed(2)} (${pnlLong})`)
+
+                    if (pnlLong > closingPointLong) {
 
                         const investmentAdvice: InvestmentAdvice = {
                             action: Action.REDUCELONG,
@@ -253,7 +273,12 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
                 case Action.REDUCESHORT: {
 
-                    if (this.getPNLOfPositionInPercent(shortPosition) > closingPointShort) {
+                    let closingPointShort = this.getClosingPointShort(longShortDeltaInPercent)
+                    let pnlShort = this.getPNLOfPositionInPercent(shortPosition)
+
+                    console.log(`cPS: ${closingPointShort.toFixed(2)} (${pnlShort})`)
+
+                    if (pnlShort > closingPointShort) {
 
                         const investmentAdvice: InvestmentAdvice = {
                             action: Action.REDUCESHORT,
