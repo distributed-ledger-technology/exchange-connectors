@@ -99,62 +99,16 @@ export class AssetManager {
 
     }
 
-
-    protected async ensureConsistency() {
-
-        if (this.longPosition === undefined) {
-
-            let message = `opening a long position with ${this.activeProcess.tradingAmount} ${this.activeProcess.pair}`
-
-            await this.toolBox.buyFuture(this.activeProcess.pair, this.activeProcess.tradingAmount, false, `opening a long position with ${this.activeProcess.tradingAmount} ${this.activeProcess.pair}`, this.accountInfo)
-
-            throw new Error(message)
-
-        }
-
-
-        if (this.shortPosition === undefined) {
-
-            let message = `opening a short position with ${this.activeProcess.tradingAmount} ${this.activeProcess.pair}`
-
-            await this.toolBox.sellFuture(this.activeProcess.pair, this.activeProcess.tradingAmount, false, `opening a short position with ${this.activeProcess.tradingAmount} ${this.activeProcess.pair}`, this.accountInfo)
-
-            throw new Error(message)
-
-        }
-
-    }
-
-
     protected async getInvestmentAdvices(): Promise<InvestmentAdvice[]> {
 
-        await this.ensureConsistency()
-
         this.investmentDecisionBase = {
-            longShortDeltaInPercent: this.toolBox.getLongShortDeltaInPercent(this.positions),
-            liquidityLevel: this.toolBox.getPNLOfPositionInPercent(this.longPosition),
-            unrealizedProfitsLong: this.toolBox.getPNLOfPositionInPercent(this.shortPosition),
-            unrealizedProfitsShort: (this.accountInfo.result.USDT.available_balance / this.accountInfo.result.USDT.equity) * 20
-
+            accountInfo: this.accountInfo,
+            positions: this.positions,
         }
 
         const investmentAdvisor = new InvestmentAdvisor()
 
         return investmentAdvisor.getInvestmentAdvices(this.investmentDecisionBase)
-
-    }
-
-
-    // protected async manageRisk() {
-
-    //     if (this.accountInfo.result.USDT.equity < this.activeProcess.minimumReserve) {
-    //         // await this.
-    //     }
-
-    // }
-
-
-    protected async realizeProfits() {
 
     }
 
