@@ -32,6 +32,7 @@ export class AssetManager {
     private investmentDecisionBase: InvestmentDecisionBase | undefined
     private mongoService: MongoService | undefined
     private accountInfoCash: AccountInfoSchema
+    private investmentAdvisor: InvestmentAdvisor
 
 
 
@@ -42,6 +43,8 @@ export class AssetManager {
         } else {
             this.exchangeConnector = exchangeConnector
         }
+
+        this.investmentAdvisor = new InvestmentAdvisor()
 
         this.activeProcess = {
             apiKey,
@@ -123,6 +126,26 @@ export class AssetManager {
             console.log(`setting minimumReserve to ${this.accountInfo.result.USDT.equity * 0.9}`)
             this.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
         }
+
+        const longPosition = this.positions.filter((p: any) => p.data.side === 'Buy')[0]
+        const shortPosition = this.positions.filter((p: any) => p.data.side === 'Sell')[0]
+
+        this.accountInfoCash.equity = this.accountInfo.result.USDT.equity
+        this.accountInfoCash.avaliableBalance = this.accountInfo.result.USDT.available_balance
+        this.accountInfoCash.longPositionSize = longPosition.data.size
+        this.accountInfoCash.longPositionPNLInPercent = this.investmentAdvisor.getPNLOfPositionInPercent(longPosition)
+        this.accountInfoCash.shortPositionSize = shortPosition.data.size
+        this.accountInfoCash.shortPositionPNLInPercent = this.investmentAdvisor.getPNLOfPositionInPercent(shortPosition)
+        this.accountInfoCash.overallUnrealizedPNL = this.investmentAdvisor.getOverallPNLInPercent(longPosition, shortPosition)
+        this.accountInfoCash.longShortDeltaInPercent = this.investmentAdvisor.getLongShortDeltaInPercent(this.positions)
+
+        try {
+            if (this.mongoService !== undefined) {
+                await this.mongoService.updateAccountInfo(this.accountInfoCash)
+            }
+        } catch (error) {
+            console.log("shit happened wrt database")
+        }
     }
 
     protected async getInvestmentAdvices(): Promise<InvestmentAdvice[]> {
@@ -133,9 +156,7 @@ export class AssetManager {
             minimumReserve: this.minimumReserve
         }
 
-        const investmentAdvisor = new InvestmentAdvisor()
-
-        return investmentAdvisor.getInvestmentAdvices(this.investmentDecisionBase)
+        return this.investmentAdvisor.getInvestmentAdvices(this.investmentDecisionBase)
 
     }
 

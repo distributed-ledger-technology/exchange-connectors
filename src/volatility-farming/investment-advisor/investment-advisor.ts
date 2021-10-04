@@ -3,7 +3,6 @@
 
 import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption } from "./interfaces.ts"
 import { InvestmentCalculator } from "./investment-calculator.ts"
-import { ToolBox } from "../asset-manager/tool-box.ts"
 
 export interface InvestmentDecisionBase {
     accountInfo: any,
@@ -72,6 +71,39 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         return this.currentInvestmentAdvices
 
     }
+
+    public getPNLOfPositionInPercent(position: any): number {
+
+        return Number((position.data.unrealised_pnl * 100 / (position.data.position_value / position.data.leverage)).toFixed(2))
+
+    }
+
+    public getOverallPNLInPercent(longPosition: any, shortPosition: any) {
+
+        let absolutePNL = longPosition.data.unrealised_pnl + shortPosition.data.unrealised_pnl
+
+        let absoluteValue = longPosition.data.position_value + shortPosition.data.position_value
+
+        return absolutePNL * 100 / (absoluteValue / longPosition.data.leverage)
+
+    }
+
+    public getLongShortDeltaInPercent(positions: any[]): number {
+
+        const sumOfLongValues = this.getSumOfValues('Buy', positions)
+        const sumOfShortValues = this.getSumOfValues('Sell', positions)
+
+        const deltaLongShort = Number((sumOfLongValues - sumOfShortValues).toFixed(2))
+        const totalOpenPositionValue = Number((sumOfLongValues + sumOfShortValues).toFixed(2))
+
+        let deltaLongShortInPercent = deltaLongShort * 100 / totalOpenPositionValue
+
+        // console.log(`calculating deltaLongShortInPercent = ${deltaLongShort} * 100 / ${totalOpenPositionValue}`)
+
+        return deltaLongShortInPercent
+
+    }
+
 
     protected deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, investmentDecisionBase: InvestmentDecisionBase): void {
 
@@ -269,22 +301,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     }
 
-    private getLongShortDeltaInPercent(positions: any[]): number {
-
-        const sumOfLongValues = this.getSumOfValues('Buy', positions)
-        const sumOfShortValues = this.getSumOfValues('Sell', positions)
-
-        const deltaLongShort = Number((sumOfLongValues - sumOfShortValues).toFixed(2))
-        const totalOpenPositionValue = Number((sumOfLongValues + sumOfShortValues).toFixed(2))
-
-        let deltaLongShortInPercent = deltaLongShort * 100 / totalOpenPositionValue
-
-        // console.log(`calculating deltaLongShortInPercent = ${deltaLongShort} * 100 / ${totalOpenPositionValue}`)
-
-        return deltaLongShortInPercent
-
-    }
-
 
     private getSumOfValues(side: string, activePositions: any[]): number {
 
@@ -301,10 +317,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     }
 
 
-    private getPNLOfPositionInPercent(position: any): number {
 
-        return Number((position.data.unrealised_pnl * 100 / (position.data.position_value / position.data.leverage)).toFixed(2))
-
-    }
 
 }
