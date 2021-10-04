@@ -2,16 +2,11 @@
 // https://www.math3d.org/2cj0XobI 
 
 import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption } from "./interfaces.ts"
-import { InvestmentCalculator } from "./investment-calculator.ts"
 
 export interface InvestmentDecisionBase {
     accountInfo: any,
     positions: any,
     minimumReserve: number
-    // longShortDeltaInPercent: number,
-    // liquidityLevel: number,
-    // unrealizedProfitsLong: number
-    // unrealizedProfitsShort: number
 }
 
 export interface IPosition {
@@ -45,12 +40,8 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     private currentInvestmentAdvices: InvestmentAdvice[] = []
 
-    private investmentCalculator: InvestmentCalculator
 
-
-    public constructor() {
-        this.investmentCalculator = new InvestmentCalculator()
-    }
+    public constructor() { }
 
 
     public getInvestmentAdvices(investmentDecisionBase: any): InvestmentAdvice[] {
@@ -95,8 +86,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         const totalOpenPositionValue = Number((sumOfLongValues + sumOfShortValues).toFixed(2))
 
         let deltaLongShortInPercent = deltaLongShort * 100 / totalOpenPositionValue
-
-        // console.log(`calculating deltaLongShortInPercent = ${deltaLongShort} * 100 / ${totalOpenPositionValue}`)
 
         return deltaLongShortInPercent
 
@@ -193,10 +182,10 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         } else if (longPosition !== undefined && shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
-            let addingPointLong = this.investmentCalculator.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
-            let addingPointShort = this.investmentCalculator.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
-            let closingPointLong = this.investmentCalculator.getClosingPointLong(longShortDeltaInPercent)
-            let closingPointShort = this.investmentCalculator.getClosingPointShort(longShortDeltaInPercent)
+            let addingPointLong = this.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
+            let addingPointShort = this.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
+            let closingPointLong = this.getClosingPointLong(longShortDeltaInPercent)
+            let closingPointShort = this.getClosingPointShort(longShortDeltaInPercent)
 
             console.log(`minR ${investmentDecisionBase.minimumReserve} - e: ${investmentDecisionBase.accountInfo.result.USDT.equity}`)
             console.log(`aPL: ${addingPointLong} - aPS: ${addingPointShort}`)
@@ -204,7 +193,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
             switch (move) {
                 case Action.BUY: {
-
 
                     if (this.getPNLOfPositionInPercent(longPosition) < addingPointLong) {
 
@@ -290,6 +278,45 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     }
 
+
+    protected getAddingPointLong(longShortDeltaInPercent: number, liquidityLevel: number): number {
+
+        let aPL = (longShortDeltaInPercent > 0) ?
+            (Math.pow(liquidityLevel, 1.7) - 170) - Math.pow(longShortDeltaInPercent, 1.3) :
+            (Math.pow(liquidityLevel, 1.7) - 170)
+
+        let slightlyOpinionatedAPL = aPL + 4 // we are in general long for crypto :)
+
+        return slightlyOpinionatedAPL
+
+    }
+
+
+    protected getAddingPointShort(longShortDeltaInPercent: number, liquidityLevel: number): number {
+
+        return (longShortDeltaInPercent < 0) ?
+            (Math.pow(liquidityLevel, 1.7) - 170) - ((Math.pow(longShortDeltaInPercent, 2) / 20)) :
+            (Math.pow(liquidityLevel, 1.7) - 170)
+
+    }
+
+
+    protected getClosingPointLong(longShortDeltaInPercent: number): number {
+
+        return (longShortDeltaInPercent <= 0) ?
+            24 :
+            (Math.log((1 / Math.pow(longShortDeltaInPercent, 5)))) + 24
+
+    }
+
+
+    protected getClosingPointShort(longShortDeltaInPercent: number): number {
+
+        return (longShortDeltaInPercent >= 0) ?
+            24 :
+            (Math.log((1 / Math.pow(-longShortDeltaInPercent, 5)))) + 24
+
+    }
 
     private getSumOfValues(side: string, activePositions: any[]): number {
 

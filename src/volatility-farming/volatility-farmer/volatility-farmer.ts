@@ -202,7 +202,7 @@ export class VolatilityFarmer {
                         _id: { $oid: "" },
                         apiKey: this.activeProcess.apiKey,
                         utcTime: new Date().toISOString(),
-                        action: investmentAdvice.action,
+                        action: investmentAdvice.action.toString(),
                         reduceOnly: false,
                         reason: investmentAdvice.reason,
                         asset: investmentAdvice.pair,
