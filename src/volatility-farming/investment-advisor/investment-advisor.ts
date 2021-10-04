@@ -333,7 +333,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     protected getClosingPointLong(longShortDeltaInPercent: number): number {
 
-        return (longShortDeltaInPercent <= 0) ?
+        return (longShortDeltaInPercent <= -10) ?
             (Math.log((1 / Math.pow(longShortDeltaInPercent, 5)))) + 24 :
             24
 
@@ -342,8 +342,11 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     protected getClosingPointShort(longShortDeltaInPercent: number): number {
 
-        return (longShortDeltaInPercent >= 0) ?
-            (Math.log((1 / Math.pow(-longShortDeltaInPercent, 5)))) + 24 :
+        const magic = Math.pow(longShortDeltaInPercent, 5)
+        // console.log(`${magic}`)
+
+        return (longShortDeltaInPercent >= 10) ?
+            (Math.log((1 / -magic))) + 24 :
             24
 
     }

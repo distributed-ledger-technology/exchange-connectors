@@ -99,9 +99,19 @@ const testSets: ITestData[] = [
             minimumReserve: 90
         },
         output: [
-            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close BTCUSDT long due to a liquidity crisis" },
-            { action: Action.REDUCESHORT, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close BTCUSDT short due to a liquidity crisis" },
-            { action: Action.PAUSE, amount: 0, pair: "", reason: "it seems we shall pause the game due to a liquidity crisis" }]
+            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close BTCUSDT long due to an equity drop" },
+            { action: Action.REDUCESHORT, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close BTCUSDT short due to an equity drop" },
+            { action: Action.PAUSE, amount: 0, pair: "", reason: "it seems we shall pause the game due to an equity drop" }]
+    },
+    {
+        input: {
+            accountInfo: { result: { USDT: { available_balance: 446, equity: 689 } } },
+            positions: [
+                { data: { side: "Buy", size: 0.232, position_value: 11300, leverage: 100, unrealised_pnl: 1 } },
+                { data: { side: "Sell", size: 0.231, position_value: 11299, leverage: 100, unrealised_pnl: -87 } }],
+            minimumReserve: 90
+        },
+        output: []
     },
 
 ]
