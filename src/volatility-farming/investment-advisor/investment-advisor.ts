@@ -254,7 +254,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
                     console.log(`cPL: ${closingPointLong.toFixed(2)} (${pnlLong})`)
 
-                    if (pnlLong > closingPointLong) {
+                    if (pnlLong > closingPointLong && longPosition.data.size > investmentOption.minTradingAmount) {
 
                         const investmentAdvice: InvestmentAdvice = {
                             action: Action.REDUCELONG,
@@ -278,7 +278,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
                     console.log(`cPS: ${closingPointShort.toFixed(2)} (${pnlShort})`)
 
-                    if (pnlShort > closingPointShort) {
+                    if (pnlShort > closingPointShort && shortPosition.data.size > investmentOption.minTradingAmount) {
 
                         const investmentAdvice: InvestmentAdvice = {
                             action: Action.REDUCESHORT,
@@ -328,8 +328,8 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     protected getClosingPointLong(longShortDeltaInPercent: number): number {
 
         return (longShortDeltaInPercent <= 0) ?
-            24 :
-            (Math.log((1 / Math.pow(longShortDeltaInPercent, 5)))) + 24
+            (Math.log((1 / Math.pow(longShortDeltaInPercent, 5)))) + 24 :
+            24
 
     }
 
@@ -337,8 +337,8 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     protected getClosingPointShort(longShortDeltaInPercent: number): number {
 
         return (longShortDeltaInPercent >= 0) ?
-            24 :
-            (Math.log((1 / Math.pow(-longShortDeltaInPercent, 5)))) + 24
+            (Math.log((1 / Math.pow(-longShortDeltaInPercent, 5)))) + 24 :
+            24
 
     }
 
