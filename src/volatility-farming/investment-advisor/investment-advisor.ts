@@ -336,8 +336,8 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     protected getClosingPointLong(longShortDeltaInPercent: number): number {
 
         return (longShortDeltaInPercent <= -10) ?
-            (Math.log((1 / Math.pow(longShortDeltaInPercent, 5)))) + 24 :
-            24
+            (Math.log((1 / Math.pow(longShortDeltaInPercent, 5)))) + 36 :
+            36
 
     }
 
@@ -348,8 +348,8 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         // console.log(`${magic}`)
 
         return (longShortDeltaInPercent >= 10) ?
-            (Math.log((1 / -magic))) + 24 :
-            24
+            (Math.log((1 / -magic))) + 36 :
+            36
 
     }
 
@@ -366,8 +366,5 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         return sum
 
     }
-
-
-
 
 }
