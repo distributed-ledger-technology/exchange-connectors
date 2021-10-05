@@ -119,7 +119,7 @@ export class MongoService {
         }
 
         // return MongoService.dealCollection.findOne({ apiKey: "123" })
-        return MongoService.dealCollection.find({ apiKey: "123" }).toArray()
+        return MongoService.dealCollection.find({ apiKey }).toArray()
 
     }
 
