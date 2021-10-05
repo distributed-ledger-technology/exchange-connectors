@@ -67,6 +67,7 @@ export class MongoService {
 
         MongoService.accountInfosCollection = MongoService.db.collection<AccountInfoSchema>("accountInfos")
         MongoService.dealCollection = MongoService.db.collection<DealSchema>("deals")
+        MongoService.logCollection = MongoService.db.collection<DealSchema>("logs")
 
         console.log(MongoService.db)
 
@@ -109,7 +110,7 @@ export class MongoService {
     }
 
 
-    public async readDeal(apiKey?: string): Promise<any | any[]> {
+    public async readDeals(apiKey?: string): Promise<any[]> {
 
         if (!this.initialized) await this.initialize()
 
@@ -117,7 +118,17 @@ export class MongoService {
             return MongoService.dealCollection.find({}).toArray()
         }
 
-        return MongoService.dealCollection.findOne({ apiKey: "123" })
+        // return MongoService.dealCollection.findOne({ apiKey: "123" })
+        return MongoService.dealCollection.find({ apiKey: "123" }).toArray()
+
+    }
+
+
+    public async readLogs(apiKey: string): Promise<any[]> {
+
+        if (!this.initialized) await this.initialize()
+
+        return MongoService.logCollection.find({ apiKey }).toArray()
 
     }
 

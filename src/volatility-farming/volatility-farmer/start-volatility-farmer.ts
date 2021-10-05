@@ -12,7 +12,8 @@ const intervalLengthInSeconds = 4
 let assetManager: VolatilityFarmer
 
 if (dbUser !== undefined && dbPW !== undefined) {
-    const dbConnectionURL = `mongodb://${dbUser}:${dbPW}@localhost:27017`
+    // const dbConnectionURL = `mongodb://${dbUser}:${dbPW}@localhost:27017`
+    const dbConnectionURL = `mongodb://${dbUser}:${dbPW}@65.21.110.40:27017`
     assetManager = new VolatilityFarmer(apiKey, apiSecret, minimumReserve, undefined, dbConnectionURL)
 } else {
     assetManager = new VolatilityFarmer(apiKey, apiSecret, minimumReserve)
