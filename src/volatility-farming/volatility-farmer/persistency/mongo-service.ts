@@ -128,8 +128,8 @@ export class MongoService {
 
         if (!this.initialized) await this.initialize()
 
-        return MongoService.logCollection.find({ apiKey }).limit(6).toArray()
-        // return MongoService.logCollection.find({ apiKey }).sort({ utcTime: -1 }).limit(6).toArray()
+        // return MongoService.logCollection.find({ apiKey }).limit(6).toArray()
+        return MongoService.logCollection.find({ apiKey }).sort({ utcTime: -1 }).limit(6).toArray()
 
     }
 
