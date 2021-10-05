@@ -135,7 +135,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
                 const investmentAdvice2: InvestmentAdvice = {
                     action: Action.REDUCESHORT,
-                    amount: longPosition.data.size,
+                    amount: shortPosition.data.size,
                     pair: investmentOption.pair,
                     reason: `it seems we shall close ${investmentOption.pair} short due to ${specificmessage}`
                 }
@@ -313,22 +313,18 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     protected getAddingPointLong(longShortDeltaInPercent: number, liquidityLevel: number): number {
 
-        let aPL = (longShortDeltaInPercent > 0) ?
-            (Math.pow(liquidityLevel, 1.7) - 170) - Math.pow(longShortDeltaInPercent, 1.3) :
-            (Math.pow(liquidityLevel, 1.7) - 170)
+        let aPL = (Math.abs(longShortDeltaInPercent) * -4) - 7
 
-        let slightlyOpinionatedAPL = aPL + 4 // we are in general long for crypto :)
-
-        return slightlyOpinionatedAPL
+        return aPL
 
     }
 
 
     protected getAddingPointShort(longShortDeltaInPercent: number, liquidityLevel: number): number {
 
-        return (longShortDeltaInPercent < 0) ?
-            (Math.pow(liquidityLevel, 1.7) - 170) - ((Math.pow(longShortDeltaInPercent, 2) / 20)) :
-            (Math.pow(liquidityLevel, 1.7) - 170)
+        let aPS = (Math.abs(longShortDeltaInPercent) * -7) - 11
+
+        return aPS
 
     }
 
@@ -336,7 +332,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     protected getClosingPointLong(longShortDeltaInPercent: number): number {
 
         return (longShortDeltaInPercent <= -10) ?
-            Math.abs(longShortDeltaInPercent) * 3 + 36 :
+            Math.abs(longShortDeltaInPercent) * 7 + 36 :
             36
 
     }
@@ -345,7 +341,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     protected getClosingPointShort(longShortDeltaInPercent: number): number {
 
         return (longShortDeltaInPercent >= 10) ?
-            Math.abs(longShortDeltaInPercent) * 3 + 36 :
+            Math.abs(longShortDeltaInPercent) * 7 + 36 :
             36
 
     }

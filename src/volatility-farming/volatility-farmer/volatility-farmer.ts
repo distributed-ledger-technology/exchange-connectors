@@ -98,10 +98,9 @@ export class VolatilityFarmer {
             this.activeProcess.iterationCounter++
 
             if (this.activeProcess.pauseCounter > 0) {
-                this.activeProcess.pauseCounter--
-                if (this.activeProcess.pauseCounter === 0) {
-                    this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
-                }
+
+                await this.pause()
+
             } else {
                 await sleepRandomAmountOfSeconds(0, intervalLengthInSeconds - 1, false)
                 await this.playTheGame()
@@ -111,8 +110,7 @@ export class VolatilityFarmer {
 
     }
 
-
-    private async playTheGame(): Promise<void> {
+    protected async playTheGame(): Promise<void> {
 
         await this.collectFundamentals()
 
@@ -176,10 +174,7 @@ export class VolatilityFarmer {
         console.log(`applying ${investmentAdvices.length} investment advices`)
 
         for (const investmentAdvice of investmentAdvices) {
-
-            if (investmentAdvice.action === Action.PAUSE) {
-                this.activeProcess.pauseCounter = 1000
-            } else {
+            {
 
                 let r
 
@@ -227,9 +222,40 @@ export class VolatilityFarmer {
 
                 }
             }
+
+            if (investmentAdvice.action === Action.PAUSE) {
+                this.activeProcess.pauseCounter = 1000
+            }
         }
 
     }
+
+
+    protected async pause(): Promise<void> {
+
+        if (this.activeProcess.pauseCounter === 1000) {
+
+            this.accountInfo = await this.exchangeConnector.getFuturesAccountData()
+            this.positions = await this.exchangeConnector.getPositions()
+
+            this.accountInfoCash.equity = this.accountInfo.result.USDT.equity
+            this.accountInfoCash.avaliableBalance = this.accountInfo.result.USDT.available_balance
+
+            this.accountInfoCash.longPositionSize = 0
+            this.accountInfoCash.shortPositionSize = 0
+
+        }
+
+        this.activeProcess.pauseCounter--
+
+        console.log(this.activeProcess.pauseCounter)
+
+        if (this.activeProcess.pauseCounter === 0) {
+            this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
+        }
+
+    }
+
 
     protected checkParameters(intervalLengthInSeconds: number): void {
 
