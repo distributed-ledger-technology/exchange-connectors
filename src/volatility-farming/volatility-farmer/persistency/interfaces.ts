@@ -28,3 +28,10 @@ export interface DealSchema {
     reduceOnly: boolean
     equityBeforeThisDeal: number
 }
+
+export interface LogSchema {
+    _id: { $oid: string }
+    apiKey: any
+    utcTime: string
+    message: string
+}

@@ -44,8 +44,8 @@ const testSets: ITestData[] = [
             minimumReserve: 90
         },
         output: [
-            { action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall enhance our BTCUSDT long position to narrow down the diff pnl" },
-            { action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall enhance our BTCUSDT short position to narrow down the diff pnl" }]
+            { action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall enhance both positions to narrow down the diff pnl" },
+            { action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall enhance both positions to narrow down the diff pnl" }]
     },
     {
         input: {
@@ -86,8 +86,8 @@ const testSets: ITestData[] = [
             minimumReserve: 90
         },
         output: [
-            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close BTCUSDT long due to a liquidity crisis" },
-            { action: Action.REDUCESHORT, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close BTCUSDT short due to a liquidity crisis" },
+            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close 0.01 BTCUSDT long due to a liquidity crisis" },
+            { action: Action.REDUCESHORT, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close 0.01 BTCUSDT short due to a liquidity crisis" },
             { action: Action.PAUSE, amount: 0, pair: "", reason: "it seems we shall pause the game due to a liquidity crisis" }]
     },
     {
@@ -99,8 +99,8 @@ const testSets: ITestData[] = [
             minimumReserve: 90
         },
         output: [
-            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close BTCUSDT long due to an equity drop" },
-            { action: Action.REDUCESHORT, amount: 0.02, pair: "BTCUSDT", reason: "it seems we shall close BTCUSDT short due to an equity drop" },
+            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close 0.01 BTCUSDT long due to an equity drop" },
+            { action: Action.REDUCESHORT, amount: 0.02, pair: "BTCUSDT", reason: "it seems we shall close 0.01 BTCUSDT short due to an equity drop" },
             { action: Action.PAUSE, amount: 0, pair: "", reason: "it seems we shall pause the game due to an equity drop" }]
     },
     {

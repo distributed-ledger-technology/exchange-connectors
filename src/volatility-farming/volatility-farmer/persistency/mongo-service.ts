@@ -1,14 +1,49 @@
 
 import { MongoClient, Database } from "https://deno.land/x/mongo/mod.ts"
-import { AccountInfoSchema, DealSchema } from "./interfaces.ts"
+import { AccountInfoSchema, DealSchema, LogSchema } from "./interfaces.ts"
 
 
 export class MongoService {
+
+    public static async saveAccountInfoCash(mongoService: MongoService | undefined, accountInfoCash: AccountInfoSchema) {
+        try {
+            if (mongoService !== undefined) {
+                await mongoService.updateAccountInfo(accountInfoCash)
+            }
+        } catch (error) {
+            const message = `shit happened wrt database: ${error.message}`
+            console.log(message)
+        }
+
+    }
+
+    public static async saveDeal(mongoService: MongoService | undefined, deal: DealSchema) {
+        try {
+            if (mongoService !== undefined) {
+                await mongoService.saveDeal(deal)
+            }
+        } catch (error) {
+            const message = `shit happened wrt database: ${error.message}`
+            console.log(message)
+
+        }
+    }
+    public static async saveLog(mongoService: MongoService | undefined, log: LogSchema) {
+        try {
+            if (mongoService !== undefined) {
+                await mongoService.saveLog(log)
+            }
+        } catch (error) {
+            const message = `shit happened wrt database: ${error.message}`
+            console.log(message)
+        }
+    }
 
     private static client = new MongoClient()
     private static db: Database
     private static accountInfosCollection: any
     private static dealCollection: any
+    private static logCollection: any
     private initialized = false
 
 
@@ -52,6 +87,21 @@ export class MongoService {
             reason: deal.reason,
             reduceOnly: deal.reduceOnly,
             equityBeforeThisDeal: deal.equityBeforeThisDeal
+        })
+
+        return insertId
+
+    }
+
+
+    public async saveLog(log: LogSchema): Promise<any> {
+
+        if (!this.initialized) await this.initialize()
+
+        const insertId = await MongoService.logCollection.insertOne({
+            apiKey: log.apiKey,
+            utcTime: log.utcTime,
+            message: log.message
         })
 
         return insertId

@@ -4,7 +4,7 @@ import { InvestmentDecisionBase, InvestmentAdvisor } from "../investment-advisor
 import { Action, IInvestmentAdvisor, InvestmentAdvice } from "../investment-advisor/interfaces.ts"
 import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts"
 import { BybitConnector } from "../../bybit/bybit-connector.ts"
-import { AccountInfoSchema, DealSchema } from "./persistency/interfaces.ts"
+import { AccountInfoSchema, DealSchema, LogSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
 import { sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
 
@@ -43,8 +43,18 @@ export class VolatilityFarmer {
             this.exchangeConnector = exchangeConnector
         }
 
+        if (dbConnectionURL !== undefined) {
+
+            try {
+                this.mongoService = new MongoService(dbConnectionURL)
+            } catch (error) {
+                console.log(`shit happened wrt database: ${error.message}`)
+            }
+
+        }
+
         if (investmentAdvisor === undefined) { // giving the possibility for constructor dependency injection 
-            this.investmentAdvisor = new InvestmentAdvisor()
+            this.investmentAdvisor = new InvestmentAdvisor(this.apiKey, this.mongoService)
         } else {
             this.investmentAdvisor = investmentAdvisor
         }
@@ -61,16 +71,6 @@ export class VolatilityFarmer {
         }
 
         VolatilityFarmer.activeProcesses.push(this.activeProcess)
-
-        if (dbConnectionURL !== undefined) {
-
-            try {
-                this.mongoService = new MongoService(dbConnectionURL)
-            } catch (error) {
-                console.log(`shit happened wrt database: ${error.message}`)
-            }
-
-        }
 
         this.accountInfoCash = {
             _id: { $oid: "" },
@@ -144,16 +144,21 @@ export class VolatilityFarmer {
             this.accountInfoCash.overallUnrealizedPNL = this.investmentAdvisor.getOverallPNLInPercent(longPosition, shortPosition)
             this.accountInfoCash.longShortDeltaInPercent = this.investmentAdvisor.getLongShortDeltaInPercent(this.positions)
 
-            console.log(`*********** minR ${this.activeProcess.minimumReserve.toFixed(2)} - e: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL} ***********`)
+            const message = `*********** minR ${this.activeProcess.minimumReserve.toFixed(2)} - e: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL} ***********`
+            console.log(message)
+
+            const log: LogSchema = {
+                _id: { $oid: "" },
+                apiKey: this.apiKey,
+                utcTime: new Date().toISOString(),
+                message,
+            }
+
+            await MongoService.saveLog(this.mongoService, log)
+
         }
 
-        try {
-            if (this.mongoService !== undefined) {
-                await this.mongoService.updateAccountInfo(this.accountInfoCash)
-            }
-        } catch (error) {
-            console.log(`shit happened wrt database: ${error.message}`)
-        }
+        await MongoService.saveAccountInfoCash(this.mongoService, this.accountInfoCash)
     }
 
     protected async getInvestmentAdvices(): Promise<InvestmentAdvice[]> {
@@ -171,64 +176,77 @@ export class VolatilityFarmer {
 
     protected async applyInvestmentAdvices(investmentAdvices: InvestmentAdvice[]): Promise<void> {
 
-        console.log(`applying ${investmentAdvices.length} investment advices`)
+        const message = `applying ${investmentAdvices.length} investment advices`
+        console.log(message)
+
+        const log: LogSchema = {
+            _id: { $oid: "" },
+            apiKey: this.apiKey,
+            utcTime: new Date().toISOString(),
+            message,
+        }
+
+        await MongoService.saveLog(this.mongoService, log)
+
 
         for (const investmentAdvice of investmentAdvices) {
-            {
+            let r
 
-                let r
+            if (investmentAdvice.action === Action.BUY) {
 
-                if (investmentAdvice.action === Action.BUY) {
+                r = await this.activeProcess.exchangeConnector.buyFuture(investmentAdvice.pair, investmentAdvice.amount, false)
 
-                    r = await this.activeProcess.exchangeConnector.buyFuture(investmentAdvice.pair, investmentAdvice.amount, false)
+            } else if (investmentAdvice.action === Action.SELL) {
 
-                } else if (investmentAdvice.action === Action.SELL) {
+                r = await this.activeProcess.exchangeConnector.sellFuture(investmentAdvice.pair, investmentAdvice.amount, false)
 
-                    r = await this.activeProcess.exchangeConnector.sellFuture(investmentAdvice.pair, investmentAdvice.amount, false)
+            } else if (investmentAdvice.action === Action.REDUCELONG) {
 
-                } else if (investmentAdvice.action === Action.REDUCELONG) {
+                r = await this.activeProcess.exchangeConnector.sellFuture(investmentAdvice.pair, investmentAdvice.amount, true)
 
-                    r = await this.activeProcess.exchangeConnector.sellFuture(investmentAdvice.pair, investmentAdvice.amount, true)
+            } else if (investmentAdvice.action === Action.REDUCESHORT) {
 
-                } else if (investmentAdvice.action === Action.REDUCESHORT) {
+                r = await this.activeProcess.exchangeConnector.buyFuture(investmentAdvice.pair, investmentAdvice.amount, true)
 
-                    r = await this.activeProcess.exchangeConnector.buyFuture(investmentAdvice.pair, investmentAdvice.amount, true)
+            }
 
+            console.log(r)
+
+            const log: LogSchema = {
+                _id: { $oid: "" },
+                apiKey: this.apiKey,
+                utcTime: new Date().toISOString(),
+                message: JSON.stringify(r),
+            }
+
+            await MongoService.saveLog(this.mongoService, log)
+
+            if (r.ret_code === 0) {
+
+                const deal: DealSchema = {
+                    _id: { $oid: "" },
+                    apiKey: this.activeProcess.apiKey,
+                    utcTime: new Date().toISOString(),
+                    action: investmentAdvice.action.toString(),
+                    reduceOnly: false,
+                    reason: investmentAdvice.reason,
+                    asset: investmentAdvice.pair,
+                    equityBeforeThisDeal: this.accountInfo.result.USDT.equity
                 }
 
-                console.log(r)
 
-                if (r.ret_code === 0) {
+                await MongoService.saveDeal(this.mongoService, deal)
 
-                    const deal: DealSchema = {
-                        _id: { $oid: "" },
-                        apiKey: this.activeProcess.apiKey,
-                        utcTime: new Date().toISOString(),
-                        action: investmentAdvice.action.toString(),
-                        reduceOnly: false,
-                        reason: investmentAdvice.reason,
-                        asset: investmentAdvice.pair,
-                        equityBeforeThisDeal: this.accountInfo.result.USDT.equity
-                    }
-
-
-                    try {
-                        if (this.mongoService !== undefined) {
-                            await this.mongoService.saveDeal(deal)
-                        }
-                    } catch (error) {
-                        console.log(`shit happened wrt database: ${error.message}`)
-                    }
-
-                }
             }
 
             if (investmentAdvice.action === Action.PAUSE) {
                 this.activeProcess.pauseCounter = 1000
             }
+
         }
 
     }
+
 
 
     protected async pause(): Promise<void> {
@@ -248,7 +266,18 @@ export class VolatilityFarmer {
 
         this.activeProcess.pauseCounter--
 
-        console.log(this.activeProcess.pauseCounter)
+        const message = `pauseCounter: ${this.activeProcess.pauseCounter}`
+        console.log(message)
+
+        const log: LogSchema = {
+            _id: { $oid: "" },
+            apiKey: this.apiKey,
+            utcTime: new Date().toISOString(),
+            message,
+        }
+
+        await MongoService.saveLog(this.mongoService, log)
+
 
         if (this.activeProcess.pauseCounter === 0) {
             this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
