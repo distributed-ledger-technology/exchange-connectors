@@ -144,7 +144,7 @@ export class VolatilityFarmer {
             this.accountInfoCash.overallUnrealizedPNL = this.investmentAdvisor.getOverallPNLInPercent(longPosition, shortPosition)
             this.accountInfoCash.longShortDeltaInPercent = this.investmentAdvisor.getLongShortDeltaInPercent(this.positions)
 
-            const message = `*********** minR ${this.activeProcess.minimumReserve.toFixed(2)} - e: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL} ***********`
+            const message = `*********** minR ${this.activeProcess.minimumReserve.toFixed(2)} - e: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
             console.log(message)
 
             const log: LogSchema = {

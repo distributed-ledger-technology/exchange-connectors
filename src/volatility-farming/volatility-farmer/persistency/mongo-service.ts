@@ -115,11 +115,11 @@ export class MongoService {
         if (!this.initialized) await this.initialize()
 
         if (apiKey === undefined) {
-            return MongoService.dealCollection.find({}).toArray()
+            return MongoService.dealCollection.find({}).sort({ utcTime: -1 }).toArray()
         }
 
         // return MongoService.dealCollection.findOne({ apiKey: "123" })
-        return MongoService.dealCollection.find({ apiKey }).toArray()
+        return MongoService.dealCollection.find({ apiKey }).sort({ utcTime: -1 }).limit(1000).toArray()
 
     }
 
@@ -128,7 +128,7 @@ export class MongoService {
 
         if (!this.initialized) await this.initialize()
 
-        return MongoService.logCollection.find({ apiKey }).toArray()
+        return MongoService.logCollection.find({ apiKey }).sort({ utcTime: -1 }).limit(10).toArray()
 
     }
 
