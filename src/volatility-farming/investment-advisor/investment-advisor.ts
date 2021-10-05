@@ -212,7 +212,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     let addingPointLong = this.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
                     let pnlLong = this.getPNLOfPositionInPercent(longPosition)
 
-                    const message = `aPL: ${addingPointLong.toFixed(2)} (${pnlLong})`
+                    const message = `adding point long: ${addingPointLong.toFixed(2)} (${pnlLong})`
                     console.log(message)
 
                     const log: LogSchema = {
@@ -248,7 +248,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     let addingPointShort = this.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
                     let pnlShort = this.getPNLOfPositionInPercent(shortPosition)
 
-                    const message = `aPS: ${addingPointShort.toFixed(2)} (${pnlShort})`
+                    const message = `adding point short: ${addingPointShort.toFixed(2)} (${pnlShort})`
                     console.log(message)
 
                     const log: LogSchema = {
@@ -281,7 +281,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
                     let closingPointLong = this.getClosingPointLong(longShortDeltaInPercent)
                     let pnlLong = this.getPNLOfPositionInPercent(longPosition)
-                    const message = `cPL: ${closingPointLong.toFixed(2)} (${pnlLong})`
+                    const message = `closing point long: ${closingPointLong.toFixed(2)} (${pnlLong})`
                     console.log(message)
 
                     const log: LogSchema = {
@@ -314,7 +314,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
                     let closingPointShort = this.getClosingPointShort(longShortDeltaInPercent)
                     let pnlShort = this.getPNLOfPositionInPercent(shortPosition)
-                    const message = `cPS: ${closingPointShort.toFixed(2)} (${pnlShort})`
+                    const message = `closing point short: ${closingPointShort.toFixed(2)} (${pnlShort})`
                     console.log(message)
 
                     const log: LogSchema = {

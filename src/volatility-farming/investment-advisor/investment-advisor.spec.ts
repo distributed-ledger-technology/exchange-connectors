@@ -129,7 +129,7 @@ const testSets: ITestData[] = [
 
 Deno.test("should return great investment advices", () => {
 
-    const investmentAdvisor = new InvestmentAdvisor()
+    const investmentAdvisor = new InvestmentAdvisor("123", undefined)
 
     console.log(testSets.length)
 

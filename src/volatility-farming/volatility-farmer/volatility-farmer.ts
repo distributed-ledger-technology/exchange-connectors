@@ -6,7 +6,7 @@ import { IExchangeConnector } from "../../interfaces/exchange-connector-interfac
 import { BybitConnector } from "../../bybit/bybit-connector.ts"
 import { AccountInfoSchema, DealSchema, LogSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
-import { sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
+import { sleep, sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
 
 export interface IActiveProcess {
     apiKey: string,
@@ -97,12 +97,16 @@ export class VolatilityFarmer {
 
             this.activeProcess.iterationCounter++
 
+            if (this.activeProcess.iterationCounter % 2000) {
+                await MongoService.deleteOldLogEntries(this.mongoService, this.apiKey)
+            }
+
             if (this.activeProcess.pauseCounter > 0) {
 
                 await this.pause()
 
             } else {
-                await sleepRandomAmountOfSeconds(0, intervalLengthInSeconds - 1, false)
+                await sleepRandomAmountOfSeconds(0, intervalLengthInSeconds - 2, false)
                 await this.playTheGame()
             }
 
@@ -115,7 +119,7 @@ export class VolatilityFarmer {
         await this.collectFundamentals()
 
         const investmentAdvices = await this.getInvestmentAdvices()
-
+        await sleep(0.1)
         await this.applyInvestmentAdvices(investmentAdvices)
 
     }
@@ -144,7 +148,7 @@ export class VolatilityFarmer {
             this.accountInfoCash.overallUnrealizedPNL = this.investmentAdvisor.getOverallPNLInPercent(longPosition, shortPosition)
             this.accountInfoCash.longShortDeltaInPercent = this.investmentAdvisor.getLongShortDeltaInPercent(this.positions)
 
-            const message = `*********** minR ${this.activeProcess.minimumReserve.toFixed(2)} - e: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
+            const message = `*********** minReserve ${this.activeProcess.minimumReserve.toFixed(2)} - equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
             console.log(message)
 
             const log: LogSchema = {
@@ -288,7 +292,7 @@ export class VolatilityFarmer {
 
     protected checkParameters(intervalLengthInSeconds: number): void {
 
-        if (intervalLengthInSeconds < 2) {
+        if (intervalLengthInSeconds < 4) {
             throw new Error(`Are you sure you want me to do this each ${intervalLengthInSeconds} seconds?`)
         }
 

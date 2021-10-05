@@ -17,6 +17,18 @@ export class MongoService {
 
     }
 
+    public static async deleteOldLogEntries(mongoService: MongoService | undefined, apiKey: string) {
+        try {
+            if (mongoService !== undefined) {
+                await mongoService.deleteOldLogs(apiKey)
+            }
+        } catch (error) {
+            const message = `shit happened wrt database: ${error.message}`
+            console.log(message)
+        }
+
+    }
+
     public static async saveDeal(mongoService: MongoService | undefined, deal: DealSchema) {
         try {
             if (mongoService !== undefined) {
@@ -130,6 +142,21 @@ export class MongoService {
 
         // return MongoService.logCollection.find({ apiKey }).limit(6).toArray()
         return MongoService.logCollection.find({ apiKey }).sort({ utcTime: -1 }).limit(6).toArray()
+
+    }
+
+    public async deleteOldLogs(apiKey: string): Promise<any[]> {
+
+        if (!this.initialized) await this.initialize()
+
+        const refDate = new Date();
+        refDate.setDate(refDate.getDate() - 1);
+
+        console.log(refDate.toISOString())
+
+        console.log(`deleting all log entries older than ${refDate}`)
+
+        return MongoService.logCollection.deleteMany({ apiKey, utcTime: { $lte: refDate.toISOString() } })
 
     }
 
