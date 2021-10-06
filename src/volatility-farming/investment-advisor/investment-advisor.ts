@@ -5,34 +5,12 @@
 
 import { LogSchema } from "../volatility-farmer/persistency/interfaces.ts";
 import { MongoService } from "../volatility-farmer/persistency/mongo-service.ts";
-import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption } from "./interfaces.ts"
-// import { sleep } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
+import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption, InvestmentDecisionBase, IPosition } from "./interfaces.ts"
+import { sleep } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
+import { FinancialCalculator } from "../../utility-boxes/financial-calculator.ts";
+import { VFLogger } from "../../utility-boxes/logger.ts";
 
-export interface InvestmentDecisionBase {
-    accountInfo: any,
-    positions: any,
-    minimumReserve: number
-}
 
-export interface IPosition {
-    data: {
-        side: string,
-        size: number,
-        position_value: number,
-        leverage: number,
-        unrealised_pnl: number,
-
-    }
-}
-
-export interface IAccountInfo {
-    result: {
-        USDT: {
-            available_balance: number,
-            equity: number
-        }
-    }
-}
 
 const investmentOptions: InvestmentOption[] = [
     {
@@ -53,8 +31,10 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         this.currentInvestmentAdvices = []
 
+        // console.log(investmentDecisionBase)
         for (const investmentOption of investmentOptions) {
             for (const move of Object.values(Action)) {
+                await sleep(0.05)
                 await this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
 
             }
@@ -65,97 +45,88 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     }
 
-    public getPNLOfPositionInPercent(position: any): number {
+    protected async deriveSpecialCaseMoves(investmentOption: InvestmentOption, lsd: number, investmentDecisionBase: InvestmentDecisionBase, longPosition: any, shortPosition: any, liquidityLevel: number): Promise<void> {
 
-        return Number((position.data.unrealised_pnl * 100 / (position.data.position_value / position.data.leverage)).toFixed(2))
+        let overallPNL = 0
+        try {
+            overallPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
+        } catch (error) {
+            // this error can occor when there are no appropriate positions open ... can be ignored
+        }
 
-    }
+        if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0 || overallPNL > 36) {
 
-    public getOverallPNLInPercent(longPosition: any, shortPosition: any) {
+            let specificmessage = ""
 
-        let absolutePNL = longPosition.data.unrealised_pnl + shortPosition.data.unrealised_pnl
+            if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve) {
+                specificmessage = "an equity drop"
+            } else if (liquidityLevel === 0) {
+                specificmessage = "a liquidity crisis"
 
-        let absoluteValue = longPosition.data.position_value + shortPosition.data.position_value
-
-        return absolutePNL * 100 / (absoluteValue / longPosition.data.leverage)
-
-    }
-
-    public getLongShortDeltaInPercent(positions: any[]): number {
-
-        const sumOfLongValues = this.getSumOfValues('Buy', positions)
-        const sumOfShortValues = this.getSumOfValues('Sell', positions)
-
-        const deltaLongShort = Number((sumOfLongValues - sumOfShortValues).toFixed(2))
-        const totalOpenPositionValue = Number((sumOfLongValues + sumOfShortValues).toFixed(2))
-
-        let deltaLongShortInPercent = deltaLongShort * 100 / totalOpenPositionValue
-
-        return deltaLongShortInPercent
-
-    }
-
-
-    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, investmentDecisionBase: InvestmentDecisionBase): Promise<void> {
-
-        const longShortDeltaInPercent = this.getLongShortDeltaInPercent(investmentDecisionBase.positions)
-        const liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
-
-        const longPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
-        const shortPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
-
-        if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
-
-            let overallPNL = 0
-            try {
-                overallPNL = this.getOverallPNLInPercent(longPosition, shortPosition)
-            } catch (error) {
-                // this error can occor when there are no appropriate positions open ... can be ignored
+            } else if (overallPNL > 36) {
+                specificmessage = `an overall PNL of ${overallPNL}`
             }
 
-            if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0 || overallPNL > 36) {
-
-                let specificmessage = ""
-
-                if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve) {
-                    specificmessage = "an equity drop"
-                } else if (liquidityLevel === 0) {
-                    specificmessage = "a liquidity crisis"
-
-                } else if (overallPNL > 36) {
-                    specificmessage = `an overall PNL of ${overallPNL}`
-                }
-
-                const investmentAdvice: InvestmentAdvice = {
-                    action: Action.REDUCELONG,
-                    amount: longPosition.data.size,
-                    pair: investmentOption.pair,
-                    reason: `it seems we shall close ${longPosition.data.size} ${investmentOption.pair} long due to ${specificmessage}`
-                }
-
-                this.currentInvestmentAdvices.push(investmentAdvice)
-
-                const investmentAdvice2: InvestmentAdvice = {
-                    action: Action.REDUCESHORT,
-                    amount: shortPosition.data.size,
-                    pair: investmentOption.pair,
-                    reason: `it seems we shall close ${longPosition.data.size} ${investmentOption.pair} short due to ${specificmessage}`
-                }
-
-                this.currentInvestmentAdvices.push(investmentAdvice2)
-
-                if (overallPNL <= 36) {
-                    const investmentAdvice3: InvestmentAdvice = {
-                        action: Action.PAUSE,
-                        amount: 0,
-                        pair: '',
-                        reason: `it seems we shall pause the game due to ${specificmessage}`
-                    }
-
-                    this.currentInvestmentAdvices.push(investmentAdvice3)
-                }
-
+            const investmentAdvice: InvestmentAdvice = {
+                action: Action.REDUCELONG,
+                amount: longPosition.data.size,
+                pair: investmentOption.pair,
+                reason: `we close ${longPosition.data.size} ${investmentOption.pair} long due to ${specificmessage}`
             }
+
+            this.currentInvestmentAdvices.push(investmentAdvice)
+
+            const investmentAdvice2: InvestmentAdvice = {
+                action: Action.REDUCESHORT,
+                amount: shortPosition.data.size,
+                pair: investmentOption.pair,
+                reason: `we close ${longPosition.data.size} ${investmentOption.pair} short due to ${specificmessage}`
+            }
+
+            this.currentInvestmentAdvices.push(investmentAdvice2)
+
+            if (overallPNL <= 36) {
+                const investmentAdvice3: InvestmentAdvice = {
+                    action: Action.PAUSE,
+                    amount: 0,
+                    pair: '',
+                    reason: `we pause the game due to ${specificmessage}`
+                }
+
+                this.currentInvestmentAdvices.push(investmentAdvice3)
+            }
+
+        } else if (longPosition !== undefined && shortPosition !== undefined && shortPosition.data.unrealised_pnl < 0 && longPosition.data.unrealised_pnl < 0 && liquidityLevel > 10) {
+            const investmentAdvice: InvestmentAdvice = {
+                action: Action.BUY,
+                amount: investmentOption.minTradingAmount,
+                pair: investmentOption.pair,
+                reason: `we enhance both positions to narrow down the diff pnl`
+            }
+
+            this.currentInvestmentAdvices.push(investmentAdvice)
+
+            const investmentAdvice2: InvestmentAdvice = {
+                action: Action.SELL,
+                amount: investmentOption.minTradingAmount,
+                pair: investmentOption.pair,
+                reason: `we enhance both positions to narrow down the diff pnl`
+            }
+
+            this.currentInvestmentAdvices.push(investmentAdvice2)
+
+        } else if (lsd < -70 && liquidityLevel > 17 && longPosition !== undefined && shortPosition !== undefined) {
+
+            const investmentAdvice: InvestmentAdvice = {
+                action: Action.SELL,
+                amount: shortPosition.data.size * 3,
+                pair: investmentOption.pair,
+                reason: `we boost the loosing position to get out of that shit quickly :)`
+            }
+
+            this.currentInvestmentAdvices.push(investmentAdvice)
+
+        } else {
 
             if (longPosition === undefined) {
 
@@ -163,13 +134,12 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     action: Action.BUY,
                     amount: investmentOption.minTradingAmount,
                     pair: investmentOption.pair,
-                    reason: `it seems we shall open a ${investmentOption.pair} long position to play the game`
+                    reason: `we open a ${investmentOption.pair} long position to play the game`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice)
 
             }
-
 
             if (shortPosition === undefined) {
 
@@ -177,125 +147,115 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                     action: Action.SELL,
                     amount: investmentOption.minTradingAmount,
                     pair: investmentOption.pair,
-                    reason: `it seems we shall open a ${investmentOption.pair} short position to play the game`
+                    reason: `we open a ${investmentOption.pair} short position to play the game`
                 }
 
                 this.currentInvestmentAdvices.push(investmentAdvice)
 
             }
+        }
 
-            if (longPosition !== undefined && shortPosition !== undefined && shortPosition.data.unrealised_pnl < 0 && longPosition.data.unrealised_pnl < 0 && liquidityLevel > 10) {
-                const investmentAdvice: InvestmentAdvice = {
-                    action: Action.BUY,
-                    amount: investmentOption.minTradingAmount,
-                    pair: investmentOption.pair,
-                    reason: `it seems we shall enhance both positions to narrow down the diff pnl`
-                }
+    }
 
-                this.currentInvestmentAdvices.push(investmentAdvice)
 
-                const investmentAdvice2: InvestmentAdvice = {
-                    action: Action.SELL,
-                    amount: investmentOption.minTradingAmount,
-                    pair: investmentOption.pair,
-                    reason: `it seems we shall enhance both positions to narrow down the diff pnl`
-                }
+    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, investmentDecisionBase: InvestmentDecisionBase): Promise<void> {
 
-                this.currentInvestmentAdvices.push(investmentAdvice2)
-            }
+        // console.log(investmentDecisionBase.positions)
+        const longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions)
+        const liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
+
+        const longPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
+        const shortPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
+
+        console.log(`longShortDeltaInPercent : ${longShortDeltaInPercent}`)
+
+        if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
+
+            await this.deriveSpecialCaseMoves(investmentOption, longShortDeltaInPercent, investmentDecisionBase, longPosition, shortPosition, liquidityLevel)
 
         } else if (longPosition !== undefined && shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
-            switch (move) {
+            await this.deriveStandardMoves(investmentOption, longShortDeltaInPercent, move, longPosition, shortPosition, liquidityLevel)
 
-                case Action.BUY: {
+        }
 
-                    let addingPointLong = this.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
-                    let pnlLong = this.getPNLOfPositionInPercent(longPosition)
+    }
 
-                    const message = `adding point long: ${addingPointLong.toFixed(2)} (${pnlLong})`
-                    await this.log(message)
+    protected async deriveStandardMoves(investmentOption: InvestmentOption, lsd: number, move: Action, longPosition: any, shortPosition: any, liquidityLevel: number): Promise<void> {
 
-                    if (pnlLong < addingPointLong) {
-                        const reason = `it seems we shall enhance our ${investmentOption.pair} long position due to a great price`
-                        this.addInvestmentAdvice(Action.BUY, investmentOption.minTradingAmount, investmentOption.pair, reason)
-                    }
+        switch (move) {
 
-                    break
+            case Action.BUY: {
 
+                let addingPointLong = this.getAddingPointLong(lsd, liquidityLevel)
+                let pnlLong = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
+
+                const message = `adding point long: ${addingPointLong.toFixed(2)} (${pnlLong})`
+                await VFLogger.log(message, this.apiKey, this.mongoService)
+
+                if (pnlLong < addingPointLong) {
+                    const reason = `we enhance our ${investmentOption.pair} long position due to a great price`
+                    this.addInvestmentAdvice(Action.BUY, investmentOption.minTradingAmount, investmentOption.pair, reason)
                 }
 
-                case Action.SELL: {
-
-                    let addingPointShort = this.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
-                    let pnlShort = this.getPNLOfPositionInPercent(shortPosition)
-
-                    const message = `adding point short: ${addingPointShort.toFixed(2)} (${pnlShort})`
-                    await this.log(message)
-
-                    if (pnlShort < addingPointShort) {
-                        const reason = `it seems we shall enhance our ${investmentOption.pair} short position due to a great price`
-                        this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, reason)
-                    }
-
-                    break
-                }
-
-                case Action.REDUCELONG: {
-
-                    let closingPointLong = this.getClosingPointLong(longShortDeltaInPercent)
-                    let pnlLong = this.getPNLOfPositionInPercent(longPosition)
-
-                    const message = `closing point long: ${closingPointLong.toFixed(2)} (${pnlLong})`
-                    await this.log(message)
-
-                    if (pnlLong > closingPointLong && longPosition.data.size > investmentOption.minTradingAmount) {
-                        const reason = `it seems we shall reduce our ${investmentOption.pair} long position to realize ${pnlLong}% profits`
-                        this.addInvestmentAdvice(Action.REDUCELONG, investmentOption.minTradingAmount, investmentOption.pair, reason)
-                    }
-
-                    break
-
-                }
-
-                case Action.REDUCESHORT: {
-
-                    let closingPointShort = this.getClosingPointShort(longShortDeltaInPercent)
-                    let pnlShort = this.getPNLOfPositionInPercent(shortPosition)
-
-                    const message = `closing point short: ${closingPointShort.toFixed(2)} (${pnlShort})`
-                    await this.log(message)
-
-                    if (pnlShort > closingPointShort && shortPosition.data.size > investmentOption.minTradingAmount) {
-                        const reason = `it seems we shall reduce our ${investmentOption.pair} short position to realize ${pnlShort}% profits`
-                        this.addInvestmentAdvice(Action.REDUCESHORT, investmentOption.minTradingAmount, investmentOption.pair, reason)
-                    }
-
-                    break
-
-                }
-
-                default: throw new Error(`you detected an interesting situation`)
+                break
 
             }
+
+            case Action.SELL: {
+
+                let addingPointShort = this.getAddingPointShort(lsd, liquidityLevel)
+                let pnlShort = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
+
+                const message = `adding point short: ${addingPointShort.toFixed(2)} (${pnlShort})`
+                await VFLogger.log(message, this.apiKey, this.mongoService)
+
+                if (pnlShort < addingPointShort) {
+                    const reason = `we enhance our ${investmentOption.pair} short position due to a great price`
+                    this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, reason)
+                }
+
+                break
+            }
+
+            case Action.REDUCELONG: {
+
+                let closingPointLong = this.getClosingPointLong(lsd)
+                let pnlLong = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
+
+                const message = `closing point long: ${closingPointLong.toFixed(2)} (${pnlLong})`
+                await VFLogger.log(message, this.apiKey, this.mongoService)
+
+                if (pnlLong > closingPointLong && longPosition.data.size > investmentOption.minTradingAmount) {
+                    const reason = `we reduce our ${investmentOption.pair} long position to realize ${pnlLong}% profits`
+                    this.addInvestmentAdvice(Action.REDUCELONG, investmentOption.minTradingAmount, investmentOption.pair, reason)
+                }
+
+                break
+
+            }
+
+            case Action.REDUCESHORT: {
+
+                let closingPointShort = this.getClosingPointShort(lsd)
+                let pnlShort = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
+
+                const message = `closing point short: ${closingPointShort.toFixed(2)} (${pnlShort})`
+                await VFLogger.log(message, this.apiKey, this.mongoService)
+
+                if (pnlShort > closingPointShort && shortPosition.data.size > investmentOption.minTradingAmount) {
+                    const reason = `we reduce our ${investmentOption.pair} short position to realize ${pnlShort}% profits`
+                    this.addInvestmentAdvice(Action.REDUCESHORT, investmentOption.minTradingAmount, investmentOption.pair, reason)
+                }
+
+                break
+
+            }
+
+            default: throw new Error(`you detected an interesting situation`)
+
         }
-
     }
-
-
-    protected async log(message: string): Promise<void> {
-        console.log(message)
-
-        const log: LogSchema = {
-            _id: { $oid: "" },
-            apiKey: this.apiKey,
-            utcTime: new Date().toISOString(),
-            message,
-        }
-
-        await MongoService.saveLog(this.mongoService, log)
-    }
-
 
     protected addInvestmentAdvice(action: Action, amount: number, pair: string, reason: string) {
 
@@ -345,20 +305,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         return (longShortDeltaInPercent > 0) ?
             longShortDeltaInPercent * 7 + 36 :
             36
-
-    }
-
-    private getSumOfValues(side: string, activePositions: any[]): number {
-
-        let sum = 0
-
-        const positions = activePositions.filter((p: any) => p.data.side === side)
-
-        for (const position of positions) {
-            sum = sum + position.data.position_value
-        }
-
-        return sum
 
     }
 

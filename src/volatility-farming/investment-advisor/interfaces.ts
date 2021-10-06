@@ -20,9 +20,32 @@ export interface InvestmentOption {
 }
 
 
+export interface InvestmentDecisionBase {
+    accountInfo: any,
+    positions: any,
+    minimumReserve: number
+}
+
+export interface IPosition {
+    data: {
+        side: string,
+        size: number,
+        position_value: number,
+        leverage: number,
+        unrealised_pnl: number,
+
+    }
+}
+
+export interface IAccountInfo {
+    result: {
+        USDT: {
+            available_balance: number,
+            equity: number
+        }
+    }
+}
+
 export interface IInvestmentAdvisor {
     getInvestmentAdvices(investmentDecisionBase: any): Promise<InvestmentAdvice[]>
-    getPNLOfPositionInPercent(longPosition: any): number
-    getOverallPNLInPercent(longPosition: any, shortPosition: any): number
-    getLongShortDeltaInPercent(position: any[]): number
 }

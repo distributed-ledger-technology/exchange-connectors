@@ -7,6 +7,8 @@ import { BybitConnector } from "../../bybit/bybit-connector.ts"
 import { AccountInfoSchema, DealSchema, LogSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
 import { sleep, sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
+import { VFLogger } from "../../utility-boxes/logger.ts";
+import { FinancialCalculator } from "../../utility-boxes/financial-calculator.ts";
 
 export interface IActiveProcess {
     apiKey: string,
@@ -106,7 +108,7 @@ export class VolatilityFarmer {
                 await this.pause()
 
             } else {
-                await sleepRandomAmountOfSeconds(0, intervalLengthInSeconds - 2, false)
+                await sleepRandomAmountOfSeconds(1, intervalLengthInSeconds - 2, false)
                 await this.playTheGame()
             }
 
@@ -143,22 +145,14 @@ export class VolatilityFarmer {
         if (longPosition !== undefined && shortPosition !== undefined) {
             this.accountInfoCash.longPositionSize = longPosition.data.size
             this.accountInfoCash.shortPositionSize = shortPosition.data.size
-            this.accountInfoCash.longPositionPNLInPercent = this.investmentAdvisor.getPNLOfPositionInPercent(longPosition)
-            this.accountInfoCash.shortPositionPNLInPercent = this.investmentAdvisor.getPNLOfPositionInPercent(shortPosition)
-            this.accountInfoCash.overallUnrealizedPNL = this.investmentAdvisor.getOverallPNLInPercent(longPosition, shortPosition)
-            this.accountInfoCash.longShortDeltaInPercent = this.investmentAdvisor.getLongShortDeltaInPercent(this.positions)
+            this.accountInfoCash.longPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
+            this.accountInfoCash.shortPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
+            this.accountInfoCash.overallUnrealizedPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
+            this.accountInfoCash.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(this.positions)
 
             const message = `*********** minReserve ${this.activeProcess.minimumReserve.toFixed(2)} - equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
-            console.log(message)
 
-            const log: LogSchema = {
-                _id: { $oid: "" },
-                apiKey: this.apiKey,
-                utcTime: new Date().toISOString(),
-                message,
-            }
-
-            await MongoService.saveLog(this.mongoService, log)
+            await VFLogger.log(message, this.apiKey, this.mongoService)
 
         }
 
@@ -182,17 +176,8 @@ export class VolatilityFarmer {
     protected async applyInvestmentAdvices(investmentAdvices: InvestmentAdvice[]): Promise<void> {
 
         const message = `applying ${investmentAdvices.length} investment advices`
-        console.log(message)
 
-        const log: LogSchema = {
-            _id: { $oid: "" },
-            apiKey: this.apiKey,
-            utcTime: new Date().toISOString(),
-            message,
-        }
-
-        await MongoService.saveLog(this.mongoService, log)
-
+        await VFLogger.log(message, this.apiKey, this.mongoService)
 
         for (const investmentAdvice of investmentAdvices) {
             let r
@@ -215,16 +200,7 @@ export class VolatilityFarmer {
 
             }
 
-            console.log(r)
-
-            const log: LogSchema = {
-                _id: { $oid: "" },
-                apiKey: this.apiKey,
-                utcTime: new Date().toISOString(),
-                message: JSON.stringify(r),
-            }
-
-            await MongoService.saveLog(this.mongoService, log)
+            await VFLogger.log(r, this.apiKey, this.mongoService)
 
             if (r.ret_code === 0) {
 
@@ -272,17 +248,8 @@ export class VolatilityFarmer {
         this.activeProcess.pauseCounter--
 
         const message = `pauseCounter: ${this.activeProcess.pauseCounter}`
-        console.log(message)
 
-        const log: LogSchema = {
-            _id: { $oid: "" },
-            apiKey: this.apiKey,
-            utcTime: new Date().toISOString(),
-            message,
-        }
-
-        await MongoService.saveLog(this.mongoService, log)
-
+        await VFLogger.log(message, this.apiKey, this.mongoService)
 
         if (this.activeProcess.pauseCounter === 0) {
             this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9

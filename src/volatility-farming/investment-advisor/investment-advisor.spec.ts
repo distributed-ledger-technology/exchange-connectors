@@ -16,8 +16,8 @@ const testSets: ITestData[] = [
             minimumReserve: 90
         },
         output: [
-            { action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall open a BTCUSDT long position to play the game" },
-            { action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall open a BTCUSDT short position to play the game" }]
+            { action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we open a BTCUSDT long position to play the game" },
+            { action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we open a BTCUSDT short position to play the game" }]
     },
     {
         input: {
@@ -25,7 +25,7 @@ const testSets: ITestData[] = [
             positions: [{ data: { side: "Buy", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 20 } }],
             minimumReserve: 90
         },
-        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall open a BTCUSDT short position to play the game" }]
+        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we open a BTCUSDT short position to play the game" }]
     },
     {
         input: {
@@ -33,7 +33,7 @@ const testSets: ITestData[] = [
             positions: [{ data: { side: "Sell", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 20 } }],
             minimumReserve: 90
         },
-        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall open a BTCUSDT long position to play the game" }]
+        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we open a BTCUSDT long position to play the game" }]
     },
     {
         input: {
@@ -44,8 +44,8 @@ const testSets: ITestData[] = [
             minimumReserve: 90
         },
         output: [
-            { action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall enhance both positions to narrow down the diff pnl" },
-            { action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall enhance both positions to narrow down the diff pnl" }]
+            { action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance both positions to narrow down the diff pnl" },
+            { action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance both positions to narrow down the diff pnl" }]
     },
     {
         input: {
@@ -55,7 +55,7 @@ const testSets: ITestData[] = [
                 { data: { side: "Sell", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: 1 } }],
             minimumReserve: 90
         },
-        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall enhance our BTCUSDT long position due to a great price" }]
+        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT long position due to a great price" }]
     },
     {
         input: {
@@ -65,7 +65,7 @@ const testSets: ITestData[] = [
                 { data: { side: "Sell", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: -15 } }],
             minimumReserve: 90
         },
-        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "it seems we shall enhance our BTCUSDT short position due to a great price" }]
+        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT short position due to a great price" }]
     },
     {
         input: {
@@ -86,9 +86,9 @@ const testSets: ITestData[] = [
             minimumReserve: 90
         },
         output: [
-            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close 0.01 BTCUSDT long due to a liquidity crisis" },
-            { action: Action.REDUCESHORT, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close 0.01 BTCUSDT short due to a liquidity crisis" },
-            { action: Action.PAUSE, amount: 0, pair: "", reason: "it seems we shall pause the game due to a liquidity crisis" }]
+            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "we close 0.01 BTCUSDT long due to a liquidity crisis" },
+            { action: Action.REDUCESHORT, amount: 0.01, pair: "BTCUSDT", reason: "we close 0.01 BTCUSDT short due to a liquidity crisis" },
+            { action: Action.PAUSE, amount: 0, pair: "", reason: "we pause the game due to a liquidity crisis" }]
     },
     {
         input: {
@@ -99,9 +99,9 @@ const testSets: ITestData[] = [
             minimumReserve: 90
         },
         output: [
-            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "it seems we shall close 0.01 BTCUSDT long due to an equity drop" },
-            { action: Action.REDUCESHORT, amount: 0.02, pair: "BTCUSDT", reason: "it seems we shall close 0.01 BTCUSDT short due to an equity drop" },
-            { action: Action.PAUSE, amount: 0, pair: "", reason: "it seems we shall pause the game due to an equity drop" }]
+            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "we close 0.01 BTCUSDT long due to an equity drop" },
+            { action: Action.REDUCESHORT, amount: 0.02, pair: "BTCUSDT", reason: "we close 0.01 BTCUSDT short due to an equity drop" },
+            { action: Action.PAUSE, amount: 0, pair: "", reason: "we pause the game due to an equity drop" }]
     },
     {
         input: {
@@ -123,10 +123,17 @@ const testSets: ITestData[] = [
         },
         output: []
     },
-
+    {
+        input: {
+            accountInfo: { result: { USDT: { available_balance: 100, equity: 100 } } },
+            positions: [
+                { data: { side: "Buy", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 10 } },
+                { data: { side: "Sell", size: 0.008, position_value: 400, leverage: 100, unrealised_pnl: -20 } }],
+            minimumReserve: 90
+        },
+        output: [{ action: Action.SELL, amount: 0.024, pair: "BTCUSDT", reason: `we boost the loosing position to get out of that shit quickly :)` }]
+    }
 ]
-
-
 Deno.test("should return great investment advices", async () => {
 
     const investmentAdvisor = new InvestmentAdvisor("123", undefined)
