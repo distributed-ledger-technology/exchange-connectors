@@ -46,116 +46,153 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     protected async deriveSpecialCaseMoves(investmentOption: InvestmentOption, lsd: number, investmentDecisionBase: InvestmentDecisionBase, longPosition: any, shortPosition: any, liquidityLevel: number): Promise<void> {
 
+
         let overallPNL = 0
         try {
             overallPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
         } catch (error) {
-            // this error can occor when there are no appropriate positions open ... can be ignored
+            console.log(error.message)
         }
 
         if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0 || overallPNL > 36) {
 
-            let specificmessage = ""
-
-            if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve) {
-                specificmessage = "an equity drop"
-            } else if (liquidityLevel === 0) {
-                specificmessage = "a liquidity crisis"
-
-            } else if (overallPNL > 36) {
-                specificmessage = `an overall PNL of ${overallPNL}`
-            }
-
-            const investmentAdvice: InvestmentAdvice = {
-                action: Action.REDUCELONG,
-                amount: longPosition.data.size,
-                pair: investmentOption.pair,
-                reason: `we close ${longPosition.data.size} ${investmentOption.pair} long due to ${specificmessage}`
-            }
-
-            this.currentInvestmentAdvices.push(investmentAdvice)
-
-            const investmentAdvice2: InvestmentAdvice = {
-                action: Action.REDUCESHORT,
-                amount: shortPosition.data.size,
-                pair: investmentOption.pair,
-                reason: `we close ${longPosition.data.size} ${investmentOption.pair} short due to ${specificmessage}`
-            }
-
-            this.currentInvestmentAdvices.push(investmentAdvice2)
-
-            if (overallPNL <= 36) {
-                const investmentAdvice3: InvestmentAdvice = {
-                    action: Action.PAUSE,
-                    amount: 0,
-                    pair: '',
-                    reason: `we pause the game due to ${specificmessage}`
-                }
-
-                this.currentInvestmentAdvices.push(investmentAdvice3)
-            }
+            await this.checkCloseAll(investmentOption, investmentDecisionBase, liquidityLevel, overallPNL, longPosition, shortPosition)
 
         } else if (longPosition !== undefined && shortPosition !== undefined && shortPosition.data.unrealised_pnl < 0 && longPosition.data.unrealised_pnl < 0 && liquidityLevel > 10) {
-            const investmentAdvice: InvestmentAdvice = {
-                action: Action.BUY,
-                amount: investmentOption.minTradingAmount,
-                pair: investmentOption.pair,
-                reason: `we enhance both positions to narrow down the diff pnl`
-            }
 
-            this.currentInvestmentAdvices.push(investmentAdvice)
+            await this.checkNarrowingDownDiffPNL(investmentOption)
 
-            const investmentAdvice2: InvestmentAdvice = {
-                action: Action.SELL,
-                amount: investmentOption.minTradingAmount,
-                pair: investmentOption.pair,
-                reason: `we enhance both positions to narrow down the diff pnl`
-            }
+        } else if (Math.abs(lsd) > 70 && liquidityLevel > 17 && longPosition !== undefined && shortPosition !== undefined) {
 
-            this.currentInvestmentAdvices.push(investmentAdvice2)
-
-        } else if (lsd < -70 && liquidityLevel > 17 && longPosition !== undefined && shortPosition !== undefined) {
-
-            const investmentAdvice: InvestmentAdvice = {
-                action: Action.SELL,
-                amount: shortPosition.data.size * 3,
-                pair: investmentOption.pair,
-                reason: `we boost the loosing position to get out of that shit quickly :)`
-            }
-
-            this.currentInvestmentAdvices.push(investmentAdvice)
+            await this.boostTheShitOutOfTheGame(lsd, investmentOption, longPosition, shortPosition)
 
         } else {
 
-            if (longPosition === undefined) {
+            await this.checkSetup(longPosition, shortPosition, investmentOption)
 
-                const investmentAdvice: InvestmentAdvice = {
-                    action: Action.BUY,
-                    amount: investmentOption.minTradingAmount,
-                    pair: investmentOption.pair,
-                    reason: `we open a ${investmentOption.pair} long position to play the game`
-                }
-
-                this.currentInvestmentAdvices.push(investmentAdvice)
-
-            }
-
-            if (shortPosition === undefined) {
-
-                const investmentAdvice: InvestmentAdvice = {
-                    action: Action.SELL,
-                    amount: investmentOption.minTradingAmount,
-                    pair: investmentOption.pair,
-                    reason: `we open a ${investmentOption.pair} short position to play the game`
-                }
-
-                this.currentInvestmentAdvices.push(investmentAdvice)
-
-            }
         }
 
     }
 
+
+    protected async boostTheShitOutOfTheGame(lsd: number, investmentOption: InvestmentOption, longPosition: any, shortPosition: any) {
+        // the following is very risky - only recommendable for people who want to get rich quick or die trying :)
+        let action: Action
+        let amount
+
+        if (lsd < - 70) {
+            action = Action.SELL
+            amount = shortPosition.data.size * 10
+        } else {
+            action = Action.BUY
+            amount = longPosition.data.size * 10
+        }
+
+        const investmentAdvice: InvestmentAdvice = {
+            action,
+            amount,
+            pair: investmentOption.pair,
+            reason: `we boost the loosing position to get out of that shit quickly :)`
+        }
+
+        this.currentInvestmentAdvices.push(investmentAdvice)
+
+    }
+
+
+    protected async checkSetup(longPosition: any, shortPosition: any, investmentOption: InvestmentOption): Promise<void> {
+        if (longPosition === undefined) {
+
+            const investmentAdvice: InvestmentAdvice = {
+                action: Action.BUY,
+                amount: investmentOption.minTradingAmount,
+                pair: investmentOption.pair,
+                reason: `we open a ${investmentOption.pair} long position to play the game`
+            }
+
+            this.currentInvestmentAdvices.push(investmentAdvice)
+
+        }
+
+        if (shortPosition === undefined) {
+
+            const investmentAdvice: InvestmentAdvice = {
+                action: Action.SELL,
+                amount: investmentOption.minTradingAmount,
+                pair: investmentOption.pair,
+                reason: `we open a ${investmentOption.pair} short position to play the game`
+            }
+
+            this.currentInvestmentAdvices.push(investmentAdvice)
+
+        }
+
+    }
+
+
+    protected async checkCloseAll(investmentOption: InvestmentOption, investmentDecisionBase: InvestmentDecisionBase, liquidityLevel: number, overallPNL: number, longPosition: any, shortPosition: any): Promise<void> {
+
+        let specificmessage = ""
+
+        if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve) {
+            specificmessage = "an equity drop"
+        } else if (liquidityLevel === 0) {
+            specificmessage = "a liquidity crisis"
+
+        } else if (overallPNL > 36) {
+            specificmessage = `an overall PNL of ${overallPNL}`
+        }
+
+        const investmentAdvice: InvestmentAdvice = {
+            action: Action.REDUCELONG,
+            amount: longPosition.data.size,
+            pair: investmentOption.pair,
+            reason: `we close ${longPosition.data.size} ${investmentOption.pair} long due to ${specificmessage}`
+        }
+
+        this.currentInvestmentAdvices.push(investmentAdvice)
+
+        const investmentAdvice2: InvestmentAdvice = {
+            action: Action.REDUCESHORT,
+            amount: shortPosition.data.size,
+            pair: investmentOption.pair,
+            reason: `we close ${longPosition.data.size} ${investmentOption.pair} short due to ${specificmessage}`
+        }
+
+        this.currentInvestmentAdvices.push(investmentAdvice2)
+
+        if (overallPNL <= 36) {
+            const investmentAdvice3: InvestmentAdvice = {
+                action: Action.PAUSE,
+                amount: 0,
+                pair: '',
+                reason: `we pause the game due to ${specificmessage}`
+            }
+
+            this.currentInvestmentAdvices.push(investmentAdvice3)
+        }
+    }
+    protected async checkNarrowingDownDiffPNL(investmentOption: InvestmentOption): Promise<void> {
+
+        const investmentAdvice: InvestmentAdvice = {
+            action: Action.BUY,
+            amount: investmentOption.minTradingAmount,
+            pair: investmentOption.pair,
+            reason: `we enhance both positions to narrow down the diff pnl`
+        }
+
+        this.currentInvestmentAdvices.push(investmentAdvice)
+
+        const investmentAdvice2: InvestmentAdvice = {
+            action: Action.SELL,
+            amount: investmentOption.minTradingAmount,
+            pair: investmentOption.pair,
+            reason: `we enhance both positions to narrow down the diff pnl`
+        }
+
+        this.currentInvestmentAdvices.push(investmentAdvice2)
+
+    }
 
     protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, investmentDecisionBase: InvestmentDecisionBase): Promise<void> {
 
@@ -165,8 +202,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         const longPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
         const shortPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
-
-        console.log(`longShortDeltaInPercent : ${longShortDeltaInPercent}`)
 
         if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
 
