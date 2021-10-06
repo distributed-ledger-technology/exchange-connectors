@@ -97,7 +97,7 @@ export class VolatilityFarmer {
 
             this.activeProcess.iterationCounter++
 
-            if (this.activeProcess.iterationCounter % 2000) {
+            if (this.activeProcess.iterationCounter % 2000 === 0) {
                 await MongoService.deleteOldLogEntries(this.mongoService, this.apiKey)
             }
 
@@ -164,6 +164,7 @@ export class VolatilityFarmer {
 
         await MongoService.saveAccountInfoCash(this.mongoService, this.accountInfoCash)
     }
+
 
     protected async getInvestmentAdvices(): Promise<InvestmentAdvice[]> {
 

@@ -21,7 +21,7 @@ export interface InvestmentOption {
 
 
 export interface IInvestmentAdvisor {
-    getInvestmentAdvices(investmentDecisionBase: any): InvestmentAdvice[]
+    getInvestmentAdvices(investmentDecisionBase: any): Promise<InvestmentAdvice[]>
     getPNLOfPositionInPercent(longPosition: any): number
     getOverallPNLInPercent(longPosition: any, shortPosition: any): number
     getLongShortDeltaInPercent(position: any[]): number

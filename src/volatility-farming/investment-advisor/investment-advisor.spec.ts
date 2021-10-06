@@ -127,7 +127,7 @@ const testSets: ITestData[] = [
 ]
 
 
-Deno.test("should return great investment advices", () => {
+Deno.test("should return great investment advices", async () => {
 
     const investmentAdvisor = new InvestmentAdvisor("123", undefined)
 
@@ -135,7 +135,7 @@ Deno.test("should return great investment advices", () => {
 
     for (const testSet of testSets) {
 
-        const investmentAdvices: InvestmentAdvice[] = investmentAdvisor.getInvestmentAdvices(testSet.input)
+        const investmentAdvices: InvestmentAdvice[] = await investmentAdvisor.getInvestmentAdvices(testSet.input)
 
         console.log(investmentAdvices)
 

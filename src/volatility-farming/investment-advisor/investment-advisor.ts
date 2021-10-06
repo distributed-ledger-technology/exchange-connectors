@@ -6,6 +6,7 @@
 import { LogSchema } from "../volatility-farmer/persistency/interfaces.ts";
 import { MongoService } from "../volatility-farmer/persistency/mongo-service.ts";
 import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption } from "./interfaces.ts"
+// import { sleep } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
 
 export interface InvestmentDecisionBase {
     accountInfo: any,
@@ -48,14 +49,13 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     public constructor(private apiKey: string, private mongoService: MongoService | undefined) { }
 
 
-    public getInvestmentAdvices(investmentDecisionBase: any): InvestmentAdvice[] {
+    public async getInvestmentAdvices(investmentDecisionBase: any): Promise<InvestmentAdvice[]> {
 
         this.currentInvestmentAdvices = []
 
         for (const investmentOption of investmentOptions) {
             for (const move of Object.values(Action)) {
-
-                this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
+                await this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
 
             }
 
@@ -96,7 +96,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     }
 
 
-    protected deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, investmentDecisionBase: InvestmentDecisionBase): void {
+    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, investmentDecisionBase: InvestmentDecisionBase): Promise<void> {
 
         const longShortDeltaInPercent = this.getLongShortDeltaInPercent(investmentDecisionBase.positions)
         const liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
@@ -207,136 +207,68 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         } else if (longPosition !== undefined && shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
             switch (move) {
+
                 case Action.BUY: {
 
                     let addingPointLong = this.getAddingPointLong(longShortDeltaInPercent, liquidityLevel)
                     let pnlLong = this.getPNLOfPositionInPercent(longPosition)
 
                     const message = `adding point long: ${addingPointLong.toFixed(2)} (${pnlLong})`
-                    console.log(message)
-
-                    const log: LogSchema = {
-                        _id: { $oid: "" },
-                        apiKey: this.apiKey,
-                        utcTime: new Date().toISOString(),
-                        message,
-                    }
-
-                    void MongoService.saveLog(this.mongoService, log)
+                    await this.log(message)
 
                     if (pnlLong < addingPointLong) {
-
-                        const investmentAdvice: InvestmentAdvice = {
-                            action: Action.BUY,
-                            amount: investmentOption.minTradingAmount,
-                            pair: investmentOption.pair,
-                            reason: `it seems we shall enhance our ${investmentOption.pair} long position due to a great price`
-                        }
-
-                        this.currentInvestmentAdvices.push(investmentAdvice)
-
+                        const reason = `it seems we shall enhance our ${investmentOption.pair} long position due to a great price`
+                        this.addInvestmentAdvice(Action.BUY, investmentOption.minTradingAmount, investmentOption.pair, reason)
                     }
 
                     break
 
                 }
 
-
                 case Action.SELL: {
-
 
                     let addingPointShort = this.getAddingPointShort(longShortDeltaInPercent, liquidityLevel)
                     let pnlShort = this.getPNLOfPositionInPercent(shortPosition)
 
                     const message = `adding point short: ${addingPointShort.toFixed(2)} (${pnlShort})`
-                    console.log(message)
-
-                    const log: LogSchema = {
-                        _id: { $oid: "" },
-                        apiKey: this.apiKey,
-                        utcTime: new Date().toISOString(),
-                        message,
-                    }
-
-                    void MongoService.saveLog(this.mongoService, log)
+                    await this.log(message)
 
                     if (pnlShort < addingPointShort) {
-
-                        const investmentAdvice: InvestmentAdvice = {
-                            action: Action.SELL,
-                            amount: investmentOption.minTradingAmount,
-                            pair: investmentOption.pair,
-                            reason: `it seems we shall enhance our ${investmentOption.pair} short position due to a great price`
-                        }
-
-                        this.currentInvestmentAdvices.push(investmentAdvice)
-
+                        const reason = `it seems we shall enhance our ${investmentOption.pair} short position due to a great price`
+                        this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, reason)
                     }
 
                     break
                 }
-
 
                 case Action.REDUCELONG: {
 
                     let closingPointLong = this.getClosingPointLong(longShortDeltaInPercent)
                     let pnlLong = this.getPNLOfPositionInPercent(longPosition)
+
                     const message = `closing point long: ${closingPointLong.toFixed(2)} (${pnlLong})`
-                    console.log(message)
-
-                    const log: LogSchema = {
-                        _id: { $oid: "" },
-                        apiKey: this.apiKey,
-                        utcTime: new Date().toISOString(),
-                        message,
-                    }
-
-                    void MongoService.saveLog(this.mongoService, log)
+                    await this.log(message)
 
                     if (pnlLong > closingPointLong && longPosition.data.size > investmentOption.minTradingAmount) {
-
-                        const investmentAdvice: InvestmentAdvice = {
-                            action: Action.REDUCELONG,
-                            amount: investmentOption.minTradingAmount,
-                            pair: investmentOption.pair,
-                            reason: `it seems we shall reduce our ${investmentOption.pair} long position to realize ${pnlLong}% profits`
-                        }
-
-                        this.currentInvestmentAdvices.push(investmentAdvice)
+                        const reason = `it seems we shall reduce our ${investmentOption.pair} long position to realize ${pnlLong}% profits`
+                        this.addInvestmentAdvice(Action.REDUCELONG, investmentOption.minTradingAmount, investmentOption.pair, reason)
                     }
 
                     break
 
                 }
 
-
                 case Action.REDUCESHORT: {
 
                     let closingPointShort = this.getClosingPointShort(longShortDeltaInPercent)
                     let pnlShort = this.getPNLOfPositionInPercent(shortPosition)
+
                     const message = `closing point short: ${closingPointShort.toFixed(2)} (${pnlShort})`
-                    console.log(message)
-
-                    const log: LogSchema = {
-                        _id: { $oid: "" },
-                        apiKey: this.apiKey,
-                        utcTime: new Date().toISOString(),
-                        message,
-                    }
-
-                    void MongoService.saveLog(this.mongoService, log)
+                    await this.log(message)
 
                     if (pnlShort > closingPointShort && shortPosition.data.size > investmentOption.minTradingAmount) {
-
-                        const investmentAdvice: InvestmentAdvice = {
-                            action: Action.REDUCESHORT,
-                            amount: investmentOption.minTradingAmount,
-                            pair: investmentOption.pair,
-                            reason: `it seems we shall reduce our ${investmentOption.pair} short position to realize ${pnlShort}% profits`
-                        }
-
-                        this.currentInvestmentAdvices.push(investmentAdvice)
-
+                        const reason = `it seems we shall reduce our ${investmentOption.pair} short position to realize ${pnlShort}% profits`
+                        this.addInvestmentAdvice(Action.REDUCESHORT, investmentOption.minTradingAmount, investmentOption.pair, reason)
                     }
 
                     break
@@ -351,9 +283,37 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     }
 
 
+    protected async log(message: string): Promise<void> {
+        console.log(message)
+
+        const log: LogSchema = {
+            _id: { $oid: "" },
+            apiKey: this.apiKey,
+            utcTime: new Date().toISOString(),
+            message,
+        }
+
+        await MongoService.saveLog(this.mongoService, log)
+    }
+
+
+    protected addInvestmentAdvice(action: Action, amount: number, pair: string, reason: string) {
+
+        const investmentAdvice: InvestmentAdvice = {
+            action,
+            amount,
+            pair,
+            reason
+        }
+
+        this.currentInvestmentAdvices.push(investmentAdvice)
+    }
+
     protected getAddingPointLong(longShortDeltaInPercent: number, liquidityLevel: number): number {
 
-        let aPL = (Math.abs(longShortDeltaInPercent) * -4) - 7
+        let aPL = (longShortDeltaInPercent < 0) ?
+            -11 :
+            (Math.abs(longShortDeltaInPercent) * -4) - 11
 
         return aPL
 
@@ -362,7 +322,9 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     protected getAddingPointShort(longShortDeltaInPercent: number, liquidityLevel: number): number {
 
-        let aPS = (Math.abs(longShortDeltaInPercent) * -7) - 11
+        let aPS = (longShortDeltaInPercent < 0) ?
+            (Math.abs(longShortDeltaInPercent) * -7) - 11 :
+            - 11
 
         return aPS
 
@@ -371,7 +333,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     protected getClosingPointLong(longShortDeltaInPercent: number): number {
 
-        return (longShortDeltaInPercent <= -10) ?
+        return (longShortDeltaInPercent < 0) ?
             Math.abs(longShortDeltaInPercent) * 7 + 36 :
             36
 
@@ -380,8 +342,8 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     protected getClosingPointShort(longShortDeltaInPercent: number): number {
 
-        return (longShortDeltaInPercent >= 10) ?
-            Math.abs(longShortDeltaInPercent) * 7 + 36 :
+        return (longShortDeltaInPercent > 0) ?
+            longShortDeltaInPercent * 7 + 36 :
             36
 
     }
