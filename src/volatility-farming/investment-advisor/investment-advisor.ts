@@ -3,7 +3,6 @@
 // it serves edcucational purposes and shall inspire friends to implement different strategies and apply them within this network
 // https://www.math3d.org/2cj0XobI 
 
-import { LogSchema } from "../volatility-farmer/persistency/interfaces.ts";
 import { MongoService } from "../volatility-farmer/persistency/mongo-service.ts";
 import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption, InvestmentDecisionBase, IPosition } from "./interfaces.ts"
 import { sleep } from "https://deno.land/x/sleep@v1.2.0/mod.ts";

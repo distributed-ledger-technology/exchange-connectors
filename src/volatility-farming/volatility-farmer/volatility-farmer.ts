@@ -1,10 +1,10 @@
 
 
-import { InvestmentDecisionBase, InvestmentAdvisor } from "../investment-advisor/investment-advisor.ts"
-import { Action, IInvestmentAdvisor, InvestmentAdvice } from "../investment-advisor/interfaces.ts"
+import { InvestmentAdvisor } from "../investment-advisor/investment-advisor.ts"
+import { Action, IInvestmentAdvisor, InvestmentAdvice, InvestmentDecisionBase } from "../investment-advisor/interfaces.ts"
 import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts"
 import { BybitConnector } from "../../bybit/bybit-connector.ts"
-import { AccountInfoSchema, DealSchema, LogSchema } from "./persistency/interfaces.ts"
+import { AccountInfoSchema, DealSchema } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
 import { sleep, sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
 import { VFLogger } from "../../utility-boxes/logger.ts";
