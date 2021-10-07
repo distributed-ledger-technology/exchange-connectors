@@ -1,11 +1,11 @@
 
 import { MongoClient, Database } from "https://deno.land/x/mongo/mod.ts"
-import { AccountInfoSchema, DealSchema, LogSchema } from "./interfaces.ts"
+import { AccountInfoSchema, DealSchema, IPersistenceService, LogSchema } from "./interfaces.ts"
 
 
-export class MongoService {
+export class MongoService implements IPersistenceService {
 
-    public static async saveAccountInfoCash(mongoService: MongoService | undefined, accountInfoCash: AccountInfoSchema) {
+    public static async saveAccountInfoCash(mongoService: IPersistenceService | undefined, accountInfoCash: AccountInfoSchema) {
         try {
             if (mongoService !== undefined) {
                 await mongoService.updateAccountInfo(accountInfoCash)
@@ -17,7 +17,7 @@ export class MongoService {
 
     }
 
-    public static async deleteOldLogEntries(mongoService: MongoService | undefined, apiKey: string) {
+    public static async deleteOldLogEntries(mongoService: IPersistenceService | undefined, apiKey: string) {
         try {
             if (mongoService !== undefined) {
                 await mongoService.deleteOldLogs(apiKey)
@@ -29,7 +29,7 @@ export class MongoService {
 
     }
 
-    public static async saveDeal(mongoService: MongoService | undefined, deal: DealSchema) {
+    public static async saveDeal(mongoService: IPersistenceService | undefined, deal: DealSchema) {
         try {
             if (mongoService !== undefined) {
                 await mongoService.saveDeal(deal)
@@ -40,7 +40,7 @@ export class MongoService {
 
         }
     }
-    public static async saveLog(mongoService: MongoService | undefined, log: LogSchema) {
+    public static async saveLog(mongoService: IPersistenceService | undefined, log: LogSchema) {
         try {
             if (mongoService !== undefined) {
                 await mongoService.saveLog(log)

@@ -3,35 +3,38 @@
 // it serves edcucational purposes and shall inspire friends to implement different strategies and apply them within this network
 // https://www.math3d.org/2cj0XobI 
 
-import { MongoService } from "../volatility-farmer/persistency/mongo-service.ts";
 import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption, InvestmentDecisionBase, IPosition } from "./interfaces.ts"
 import { sleep } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
 import { FinancialCalculator } from "../../utility-boxes/financial-calculator.ts";
 import { VFLogger } from "../../utility-boxes/logger.ts";
+import { IPersistenceService } from "../volatility-farmer/persistency/interfaces.ts";
 
 
 
-const investmentOptions: InvestmentOption[] = [
-    {
-        pair: "BTCUSDT",
-        minTradingAmount: 0.001
-    }
-]
 
 export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     private currentInvestmentAdvices: InvestmentAdvice[] = []
 
+    private investmentOptions: InvestmentOption[] = [
+        {
+            pair: "BTCUSDT",
+            minTradingAmount: 0.001
+        }
+    ]
 
-    public constructor(private apiKey: string, private mongoService: MongoService | undefined) { }
+    public constructor(private apiKey: string, private mongoService: IPersistenceService | undefined) { }
 
 
+    public getInvestmentOptions(): InvestmentOption[] {
+        return this.investmentOptions
+    }
     public async getInvestmentAdvices(investmentDecisionBase: any): Promise<InvestmentAdvice[]> {
 
         this.currentInvestmentAdvices = []
 
         // console.log(investmentDecisionBase)
-        for (const investmentOption of investmentOptions) {
+        for (const investmentOption of this.investmentOptions) {
             for (const move of Object.values(Action)) {
                 await sleep(0.05)
                 await this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
@@ -54,7 +57,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             console.log(error.message)
         }
 
-        if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0 || overallPNL > 36) {
+        if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0 || overallPNL > 45) {
 
             await this.checkCloseAll(investmentOption, investmentDecisionBase, liquidityLevel, overallPNL, longPosition, shortPosition)
 
@@ -139,7 +142,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         } else if (liquidityLevel === 0) {
             specificmessage = "a liquidity crisis"
 
-        } else if (overallPNL > 36) {
+        } else if (overallPNL > 45) {
             specificmessage = `an overall PNL of ${overallPNL}`
         }
 
@@ -161,7 +164,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         this.currentInvestmentAdvices.push(investmentAdvice2)
 
-        if (overallPNL <= 36) {
+        if (overallPNL <= 45) {
             const investmentAdvice3: InvestmentAdvice = {
                 action: Action.PAUSE,
                 amount: 0,
@@ -328,7 +331,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     protected getClosingPointLong(longShortDeltaInPercent: number): number {
 
         return (longShortDeltaInPercent < 0) ?
-            Math.abs(longShortDeltaInPercent) * 7 + 36 :
+            Math.abs(longShortDeltaInPercent) * 7 + 45 :
             36
 
     }

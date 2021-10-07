@@ -1,10 +1,8 @@
 
 
-import { InvestmentAdvisor } from "../investment-advisor/investment-advisor.ts"
 import { Action, IInvestmentAdvisor, InvestmentAdvice, InvestmentDecisionBase } from "../investment-advisor/interfaces.ts"
 import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts"
-import { BybitConnector } from "../../bybit/bybit-connector.ts"
-import { AccountInfoSchema, DealSchema } from "./persistency/interfaces.ts"
+import { AccountInfoSchema, DealSchema, IPersistenceService } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
 import { sleep, sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
 import { VFLogger } from "../../utility-boxes/logger.ts";
@@ -27,39 +25,14 @@ export class VolatilityFarmer {
     public static activeProcesses: IActiveProcess[] = []
 
     private activeProcess: IActiveProcess
-    private exchangeConnector: IExchangeConnector
     private accountInfo: any // shall be defined properly as soon as we have a long term dex connected
     private positions: any[] = [] // shall be defined properly as soon as we have a long term dex connected
     private investmentDecisionBase: InvestmentDecisionBase | undefined
-    private mongoService: MongoService | undefined
     private accountInfoCash: AccountInfoSchema
-    private investmentAdvisor: IInvestmentAdvisor
 
 
 
-    public constructor(private apiKey: string, private apiSecret: string, minimumReserve: number, exchangeConnector?: IExchangeConnector, dbConnectionURL?: string, investmentAdvisor?: IInvestmentAdvisor) {
-
-        if (exchangeConnector === undefined) { // giving the possibility for constructor dependency injection 
-            this.exchangeConnector = new BybitConnector(apiKey, apiSecret)
-        } else {
-            this.exchangeConnector = exchangeConnector
-        }
-
-        if (dbConnectionURL !== undefined) {
-
-            try {
-                this.mongoService = new MongoService(dbConnectionURL)
-            } catch (error) {
-                console.log(`shit happened wrt database: ${error.message}`)
-            }
-
-        }
-
-        if (investmentAdvisor === undefined) { // giving the possibility for constructor dependency injection 
-            this.investmentAdvisor = new InvestmentAdvisor(this.apiKey, this.mongoService)
-        } else {
-            this.investmentAdvisor = investmentAdvisor
-        }
+    public constructor(private apiKey: string, private apiSecret: string, private exchangeConnector: IExchangeConnector, private investmentAdvisor: IInvestmentAdvisor, private mongoService: IPersistenceService) {
 
         this.activeProcess = {
             apiKey,
@@ -67,8 +40,8 @@ export class VolatilityFarmer {
             intervalId: 0,
             iterationCounter: 0,
             pauseCounter: 0,
-            minimumReserve,
-            pair: 'BTCUSDT',
+            minimumReserve: 0,
+            pair: investmentAdvisor.getInvestmentOptions()[0].,
             tradingAmount: 0.001
         }
 
@@ -91,7 +64,7 @@ export class VolatilityFarmer {
     }
 
 
-    public async optimizeInvestments(intervalLengthInSeconds: number): Promise<void> {
+    public async farm(intervalLengthInSeconds: number): Promise<void> {
 
         this.checkParameters(intervalLengthInSeconds)
 

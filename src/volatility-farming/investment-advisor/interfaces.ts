@@ -47,5 +47,6 @@ export interface IAccountInfo {
 }
 
 export interface IInvestmentAdvisor {
+    getInvestmentOptions(): any[]
     getInvestmentAdvices(investmentDecisionBase: any): Promise<InvestmentAdvice[]>
 }
