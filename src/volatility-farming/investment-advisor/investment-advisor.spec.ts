@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.86.0/testing/asserts.ts";
 import { InvestmentAdvisor } from "./investment-advisor.ts";
-import { Action, InvestmentAdvice, InvestmentDecisionBase } from "./interfaces.ts";
+import { Action, IInvestmentAdvisor, InvestmentAdvice, InvestmentDecisionBase } from "./interfaces.ts";
 
 export interface ITestData {
     input: InvestmentDecisionBase,
@@ -123,30 +123,30 @@ const testSets: ITestData[] = [
         },
         output: []
     },
-    {
-        input: {
-            accountInfo: { result: { USDT: { available_balance: 100, equity: 100 } } },
-            positions: [
-                { data: { side: "Buy", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 10 } },
-                { data: { side: "Sell", size: 0.008, position_value: 400, leverage: 100, unrealised_pnl: -20 } }],
-            minimumReserve: 90
-        },
-        output: [{ action: Action.SELL, amount: 0.024, pair: "BTCUSDT", reason: `we boost the loosing position to get out of that shit quickly :)` }]
-    },
-    {
-        input: {
-            accountInfo: { result: { USDT: { available_balance: 100, equity: 100 } } },
-            positions: [
-                { data: { side: "Buy", size: 0.008, position_value: 400, leverage: 100, unrealised_pnl: -20 } },
-                { data: { side: "Sell", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 10 } }],
-            minimumReserve: 90
-        },
-        output: [{ action: Action.BUY, amount: 0.08, pair: "BTCUSDT", reason: `we boost the loosing position to get out of that shit quickly :)` }]
-    }
+    // {
+    //     input: {
+    //         accountInfo: { result: { USDT: { available_balance: 100, equity: 100 } } },
+    //         positions: [
+    //             { data: { side: "Buy", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 10 } },
+    //             { data: { side: "Sell", size: 0.008, position_value: 400, leverage: 100, unrealised_pnl: -20 } }],
+    //         minimumReserve: 90
+    //     },
+    //     output: [{ action: Action.SELL, amount: 0.024, pair: "BTCUSDT", reason: `we boost the loosing position to get out of that shit quickly :)` }]
+    // },
+    // {
+    //     input: {
+    //         accountInfo: { result: { USDT: { available_balance: 100, equity: 100 } } },
+    //         positions: [
+    //             { data: { side: "Buy", size: 0.008, position_value: 400, leverage: 100, unrealised_pnl: -20 } },
+    //             { data: { side: "Sell", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 10 } }],
+    //         minimumReserve: 90
+    //     },
+    //     output: [{ action: Action.BUY, amount: 0.08, pair: "BTCUSDT", reason: `we boost the loosing position to get out of that shit quickly :)` }]
+    // }
 ]
 Deno.test("should return great investment advices", async () => {
 
-    const investmentAdvisor = new InvestmentAdvisor("123", undefined)
+    const investmentAdvisor: IInvestmentAdvisor = new InvestmentAdvisor("123", undefined)
 
     console.log(testSets.length)
 

@@ -32,7 +32,7 @@ export class VolatilityFarmer {
 
 
 
-    public constructor(private apiKey: string, private apiSecret: string, private exchangeConnector: IExchangeConnector, private investmentAdvisor: IInvestmentAdvisor, private mongoService: IPersistenceService) {
+    public constructor(private apiKey: string, private apiSecret: string, private exchangeConnector: IExchangeConnector, private investmentAdvisor: IInvestmentAdvisor, private mongoService: IPersistenceService | undefined) {
 
         this.activeProcess = {
             apiKey,
