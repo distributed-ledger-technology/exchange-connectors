@@ -41,7 +41,7 @@ export class VolatilityFarmer {
             iterationCounter: 0,
             pauseCounter: 0,
             minimumReserve: 0,
-            pair: investmentAdvisor.getInvestmentOptions()[0].,
+            pair: investmentAdvisor.getInvestmentOptions()[0].pair,
             tradingAmount: 0.001
         }
 
