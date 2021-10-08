@@ -1,5 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.86.0/testing/asserts.ts";
-import { Action, IInvestmentAdvisor, InvestmentAdvice, InvestmentDecisionBase, InvestmentAdvisor } from "../../../../deps.ts";
+import { InvestmentDecisionBase, InvestmentAdvice, Action, IInvestmentAdvisor } from "../interfaces.ts";
+import { InvestmentAdvisor } from "../investment-advisor.ts";
 
 export interface ITestData {
     input: InvestmentDecisionBase,

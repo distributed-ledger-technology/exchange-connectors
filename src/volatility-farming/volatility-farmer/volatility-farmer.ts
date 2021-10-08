@@ -58,7 +58,8 @@ export class VolatilityFarmer {
             shortPositionPNLInPercent: 0,
             longShortDeltaInPercent: 0,
             overallUnrealizedPNL: 0,
-            botStatus: 'active'
+            botStatus: 'active',
+            strategie: this.investmentAdvisor.constructor.name
         }
 
     }

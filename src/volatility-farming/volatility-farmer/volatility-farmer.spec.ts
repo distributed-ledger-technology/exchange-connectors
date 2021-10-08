@@ -1,4 +1,4 @@
-import { assertEquals, fail } from "https://deno.land/std@0.86.0/testing/asserts.ts";
+import { fail } from "https://deno.land/std@0.86.0/testing/asserts.ts";
 import { VolatilityFarmer } from "./volatility-farmer.ts"
 import { ExchangeConnectorTestDouble } from "./exchange-connector-test-double.ts";
 import { InvestmentAdvisor } from "../investment-advisor/investment-advisor.ts";
