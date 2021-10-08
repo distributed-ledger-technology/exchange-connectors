@@ -83,11 +83,11 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
             case Action.BUY: {
 
                 const refDate = new Date();
-                refDate.setDate(refDate.getHours() - 1);
+                refDate.setMinutes(refDate.getMinutes() - 30);
 
                 console.log(this.lastAddDate, "vs.", refDate)
 
-                if (liquidityLevel > 19 || (liquidityLevel < 11 && this.lastAddDate < refDate)) {
+                if (liquidityLevel > 19 || (liquidityLevel < 11 && liquidityLevel > 3 && this.lastAddDate < refDate)) {
 
                     const investmentAdvice: InvestmentAdvice = {
                         action: Action.BUY,
