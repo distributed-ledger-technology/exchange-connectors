@@ -81,7 +81,7 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
                 break
             case Action.BUY: {
 
-                if (liquidityLevel > 19 || (liquidityLevel > 3 && pnlInPercent < 10)) {
+                if (liquidityLevel > 19 || (liquidityLevel > 11 && pnlInPercent < 10)) {
 
                     const investmentAdvice: InvestmentAdvice = {
                         action: Action.BUY,

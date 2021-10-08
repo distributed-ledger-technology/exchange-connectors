@@ -11,7 +11,7 @@ export class FinancialCalculator {
             ((longPosition === undefined) ? 0 : longPosition.data.position_value) +
             ((shortPosition === undefined) ? 0 : shortPosition.data.position_value)
 
-        return absolutePNL * 100 / (absoluteValue / longPosition.data.leverage)
+        return absolutePNL * 100 / (absoluteValue / ((longPosition === undefined) ? 1 : longPosition.data.leverage))
 
     }
 
