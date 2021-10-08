@@ -35,7 +35,8 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
         const liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
         const longPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
-        const pnlInPercent = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
+
+        let pnlInPercent = (longPosition === undefined) ? 0 : FinancialCalculator.getPNLOfPositionInPercent(longPosition)
 
         const message = `liquidity level: ${liquidityLevel.toFixed(2)}`
         await VFLogger.log(message, this.apiKey, this.persistenceService)
@@ -57,7 +58,7 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
 
 
-    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, longPosition: any, liquidityLevel: number, pnlInPercent: number): Promise<void> {
+    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, longPosition: any | undefined, liquidityLevel: number, pnlInPercent: number): Promise<void> {
 
 
         switch (move) {
@@ -80,7 +81,7 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
                 break
             case Action.BUY: {
 
-                if (liquidityLevel > 11 || (liquidityLevel > 3 && pnlInPercent < 20)) {
+                if (liquidityLevel > 19 || (liquidityLevel > 3 && pnlInPercent < 10)) {
 
                     const investmentAdvice: InvestmentAdvice = {
                         action: Action.BUY,

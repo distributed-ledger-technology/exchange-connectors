@@ -3,9 +3,13 @@ export class FinancialCalculator {
 
     public static getOverallPNLInPercent(longPosition: any, shortPosition: any) {
 
-        let absolutePNL = longPosition.data.unrealised_pnl + shortPosition.data.unrealised_pnl
+        let absolutePNL =
+            ((longPosition === undefined) ? 0 : longPosition.data.unrealised_pnl) +
+            ((shortPosition === undefined) ? 0 : shortPosition.data.unrealised_pnl)
 
-        let absoluteValue = longPosition.data.position_value + shortPosition.data.position_value
+        let absoluteValue =
+            ((longPosition === undefined) ? 0 : longPosition.data.position_value) +
+            ((shortPosition === undefined) ? 0 : shortPosition.data.position_value)
 
         return absolutePNL * 100 / (absoluteValue / longPosition.data.leverage)
 
@@ -13,9 +17,8 @@ export class FinancialCalculator {
 
 
     public static getPNLOfPositionInPercent(position: any): number {
-
+        if (position === undefined) return 0
         return Number((position.data.unrealised_pnl * 100 / (position.data.position_value / position.data.leverage)).toFixed(2))
-
     }
 
     public static getLongShortDeltaInPercent(positions: any[]): number {

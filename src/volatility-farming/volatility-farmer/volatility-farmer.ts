@@ -115,19 +115,17 @@ export class VolatilityFarmer {
 
         this.accountInfoCash.equity = this.accountInfo.result.USDT.equity
         this.accountInfoCash.avaliableBalance = this.accountInfo.result.USDT.available_balance
-        if (longPosition !== undefined && shortPosition !== undefined) {
-            this.accountInfoCash.longPositionSize = longPosition.data.size
-            this.accountInfoCash.shortPositionSize = shortPosition.data.size
-            this.accountInfoCash.longPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
-            this.accountInfoCash.shortPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
-            this.accountInfoCash.overallUnrealizedPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
-            this.accountInfoCash.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(this.positions)
+        this.accountInfoCash.longPositionSize = (longPosition === undefined) ? 0 : longPosition.data.size
+        this.accountInfoCash.shortPositionSize = (shortPosition === undefined) ? 0 : shortPosition.data.size
 
-            const message = `*********** minReserve ${this.activeProcess.minimumReserve.toFixed(2)} - equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
+        this.accountInfoCash.longPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
+        this.accountInfoCash.shortPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
+        this.accountInfoCash.overallUnrealizedPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
+        this.accountInfoCash.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(this.positions)
 
-            await VFLogger.log(message, this.apiKey, this.mongoService)
+        const message = `*********** minReserve ${this.activeProcess.minimumReserve.toFixed(2)} - equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
 
-        }
+        await VFLogger.log(message, this.apiKey, this.mongoService)
 
         await MongoService.saveAccountInfoCash(this.mongoService, this.accountInfoCash)
     }
