@@ -81,8 +81,19 @@ export class VolatilityFarmer {
                 await this.pause()
 
             } else {
+
                 await sleepRandomAmountOfSeconds(1, intervalLengthInSeconds - 2, false)
-                await this.playTheGame()
+
+                try {
+
+                    await this.playTheGame()
+
+                } catch (error) {
+
+                    console.log(error.message)
+
+                }
+
             }
 
         }, intervalLengthInSeconds * 1000)
@@ -103,6 +114,8 @@ export class VolatilityFarmer {
     protected async collectFundamentals() {
 
         this.accountInfo = await this.exchangeConnector.getFuturesAccountData()
+        if (this.accountInfo.result.USDT.equity === 0) throw new Error(`r u kidding me?`)
+
         this.positions = await this.exchangeConnector.getPositions()
 
         if (this.activeProcess.iterationCounter === 1 || this.activeProcess.iterationCounter % 5000 === 0) {
