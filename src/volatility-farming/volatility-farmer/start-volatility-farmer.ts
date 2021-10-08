@@ -1,4 +1,4 @@
-import { Registry } from "https://deno.land/x/injector@v1.3.0/mod.ts"
+import { Registry } from "../../../deps.ts"
 import { BybitConnector } from "../../bybit/bybit-connector.ts";
 import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts";
 import { InvestmentAdvisorETHLong } from "../investment-advisor/alternative-investment-advisors/investment-advisor-eth-long.ts";

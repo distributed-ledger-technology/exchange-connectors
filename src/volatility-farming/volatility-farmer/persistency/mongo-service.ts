@@ -175,7 +175,8 @@ export class MongoService implements IPersistenceService {
             shortPositionPNLInPercent: accountInfo.shortPositionPNLInPercent,
             longShortDeltaInPercent: accountInfo.longShortDeltaInPercent,
             overallUnrealizedPNL: accountInfo.overallUnrealizedPNL,
-            botStatus: accountInfo.botStatus
+            botStatus: accountInfo.botStatus,
+            strategy: accountInfo.strategy
         }, { upsert: true })
 
         return insertId

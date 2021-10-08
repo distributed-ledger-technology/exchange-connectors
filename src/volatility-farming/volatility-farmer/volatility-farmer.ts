@@ -59,7 +59,7 @@ export class VolatilityFarmer {
             longShortDeltaInPercent: 0,
             overallUnrealizedPNL: 0,
             botStatus: 'active',
-            strategie: this.investmentAdvisor.constructor.name
+            strategy: this.investmentAdvisor.constructor.name
         }
 
     }
@@ -136,9 +136,7 @@ export class VolatilityFarmer {
         this.accountInfoCash.shortPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
         this.accountInfoCash.overallUnrealizedPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
         this.accountInfoCash.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(this.positions)
-        this.accountInfoCash.strategie = this.investmentAdvisor.constructor.name
-
-        console.log(this.accountInfoCash.strategie)
+        this.accountInfoCash.strategy = this.investmentAdvisor.constructor.name
 
         const message = `*********** minReserve ${this.activeProcess.minimumReserve.toFixed(2)} - equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
 
