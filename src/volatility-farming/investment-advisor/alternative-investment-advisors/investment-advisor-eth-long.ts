@@ -21,6 +21,7 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
     ]
 
     private currentInvestmentAdvices: InvestmentAdvice[] = []
+    private lastAddDate: Date = new Date()
 
     public constructor(private apiKey: string, private persistenceService: IPersistenceService) { }
 
@@ -29,7 +30,7 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
         return this.investmentOptions
     }
 
-    public async getInvestmentAdvices(investmentDecisionBase: any): Promise<InvestmentAdvice[]> {
+    public async getInvestmentAdvices(investmentDecisionBase: InvestmentDecisionBase): Promise<InvestmentAdvice[]> {
 
         this.currentInvestmentAdvices = []
 
@@ -81,7 +82,12 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
                 break
             case Action.BUY: {
 
-                if (liquidityLevel > 19 || (liquidityLevel > 11 && pnlInPercent < 10)) {
+                const refDate = new Date();
+                refDate.setDate(refDate.getHours() - 1);
+
+                console.log(this.lastAddDate, "vs.", refDate)
+
+                if (liquidityLevel > 19 || (liquidityLevel < 11 && this.lastAddDate < refDate)) {
 
                     const investmentAdvice: InvestmentAdvice = {
                         action: Action.BUY,
@@ -91,6 +97,8 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
                     }
 
                     this.currentInvestmentAdvices.push(investmentAdvice)
+
+                    this.lastAddDate = new Date()
                 }
 
             }
