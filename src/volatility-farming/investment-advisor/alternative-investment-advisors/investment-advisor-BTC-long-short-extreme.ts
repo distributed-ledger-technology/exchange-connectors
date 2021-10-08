@@ -13,6 +13,7 @@ import { IInvestmentAdvisor, InvestmentAdvice, InvestmentOption, Action, Investm
 export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor {
 
     private currentInvestmentAdvices: InvestmentAdvice[] = []
+    private lastAdviceDate: Date = new Date()
 
     private investmentOptions: InvestmentOption[] = [
         {
@@ -280,6 +281,9 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
         }
 
         this.currentInvestmentAdvices.push(investmentAdvice)
+
+        this.lastAdviceDate = new Date()
+
     }
 
     protected getAddingPointLong(longShortDeltaInPercent: number, liquidityLevel: number): number {
@@ -287,6 +291,13 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
         let aPL = (longShortDeltaInPercent < 0) ?
             -11 :
             (Math.abs(longShortDeltaInPercent) * -4) - 11
+
+        const refDate = new Date();
+        refDate.setMinutes(refDate.getMinutes() - 5);
+
+        if (this.lastAdviceDate < refDate) {
+            aPL = aPL / liquidityLevel
+        }
 
         return aPL
 
@@ -298,6 +309,13 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
         let aPS = (longShortDeltaInPercent < 0) ?
             (Math.abs(longShortDeltaInPercent) * -7) - 11 :
             - 11
+
+        const refDate = new Date();
+        refDate.setMinutes(refDate.getMinutes() - 5);
+
+        if (this.lastAdviceDate < refDate) {
+            aPS = aPS / liquidityLevel
+        }
 
         return aPS
 
