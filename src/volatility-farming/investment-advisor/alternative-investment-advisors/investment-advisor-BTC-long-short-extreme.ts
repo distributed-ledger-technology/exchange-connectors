@@ -3,16 +3,14 @@
 // it serves edcucational purposes and shall inspire friends to implement different strategies and apply them within this network
 // https://www.math3d.org/2cj0XobI 
 
-import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption, InvestmentDecisionBase, IPosition } from "./interfaces.ts"
 import { sleep } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
-import { FinancialCalculator } from "../../utility-boxes/financial-calculator.ts";
-import { VFLogger } from "../../utility-boxes/logger.ts";
-import { IPersistenceService } from "../volatility-farmer/persistency/interfaces.ts";
+import { FinancialCalculator } from "../../../utility-boxes/financial-calculator.ts";
+import { VFLogger } from "../../../utility-boxes/logger.ts";
+import { IPersistenceService } from "../../volatility-farmer/persistency/interfaces.ts";
+import { IInvestmentAdvisor, InvestmentAdvice, InvestmentOption, Action, InvestmentDecisionBase, IPosition } from "../interfaces.ts";
 
 
-
-
-export class InvestmentAdvisor implements IInvestmentAdvisor {
+export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor {
 
     private currentInvestmentAdvices: InvestmentAdvice[] = []
 
@@ -202,8 +200,11 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                 await VFLogger.log(message, this.apiKey, this.mongoService)
 
                 if (pnlLong < addingPointLong) {
-                    const reason = `we enhance our ${investmentOption.pair} long position due to a great price`
-                    this.addInvestmentAdvice(Action.BUY, investmentOption.minTradingAmount, investmentOption.pair, reason)
+                    let factor = Math.floor(Math.abs(lsd) / 10)
+                    if (factor < 1) factor = 1
+                    const amount = investmentOption.minTradingAmount * factor
+                    const reason = `we enhance our ${investmentOption.pair} long position by ${amount} due to a great price`
+                    this.addInvestmentAdvice(Action.BUY, amount, investmentOption.pair, reason)
                 }
 
                 break
@@ -219,7 +220,11 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                 await VFLogger.log(message, this.apiKey, this.mongoService)
 
                 if (pnlShort < addingPointShort) {
-                    const reason = `we enhance our ${investmentOption.pair} short position due to a great price`
+
+                    let factor = Math.floor(Math.abs(lsd) / 10)
+                    if (factor < 1) factor = 1
+                    const amount = investmentOption.minTradingAmount * factor
+                    const reason = `we enhance our ${investmentOption.pair} short position by ${amount} due to a great price`
                     this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, reason)
                 }
 
