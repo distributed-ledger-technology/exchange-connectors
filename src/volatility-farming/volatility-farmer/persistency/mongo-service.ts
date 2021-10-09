@@ -143,7 +143,7 @@ export class MongoService implements IPersistenceService {
         }
 
         // return MongoService.dealCollection.findOne({ apiKey: "123" })
-        return MongoService.dealCollection.find({ apiKey }).sort({ utcTime: -1 }).limit(1000).toArray()
+        return MongoService.dealCollection.find({ apiKey }).sort({ utcTime: -1 }).toArray()
 
     }
 

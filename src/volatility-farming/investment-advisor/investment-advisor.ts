@@ -31,6 +31,8 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     public getInvestmentOptions(): InvestmentOption[] {
         return this.investmentOptions
     }
+
+
     public async getInvestmentAdvices(investmentDecisionBase: any): Promise<InvestmentAdvice[]> {
 
         this.currentInvestmentAdvices = []
