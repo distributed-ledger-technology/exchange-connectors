@@ -30,6 +30,7 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
         return this.investmentOptions
     }
 
+
     public async getInvestmentAdvices(investmentDecisionBase: InvestmentDecisionBase): Promise<InvestmentAdvice[]> {
 
         this.currentInvestmentAdvices = []
@@ -42,8 +43,6 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
         const message = `liquidity level: ${liquidityLevel.toFixed(2)}`
         await VFLogger.log(message, this.apiKey, this.persistenceService)
 
-
-        // console.log(investmentDecisionBase)
         for (const investmentOption of this.investmentOptions) {
             for (const move of Object.values(Action)) {
                 await sleep(0.1)
@@ -60,7 +59,6 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
 
     protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, longPosition: any | undefined, liquidityLevel: number, pnlInPercent: number): Promise<void> {
-
 
         switch (move) {
             case Action.PAUSE: {
@@ -84,8 +82,6 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
                 const refDate = new Date();
                 refDate.setMinutes(refDate.getMinutes() - 30);
-
-                console.log(this.lastAddDate, "vs.", refDate)
 
                 if (liquidityLevel > 19 || (liquidityLevel < 11 && liquidityLevel > 3 && this.lastAddDate < refDate)) {
 
@@ -120,7 +116,7 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
             }
                 break
 
-            default: // console.log(`${move} not relevant for this advisor`)
+            default: // console.log(`potential move ${move} not relevant for this advisor`)
         }
     }
 

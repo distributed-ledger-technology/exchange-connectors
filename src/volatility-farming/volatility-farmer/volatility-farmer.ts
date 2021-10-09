@@ -84,7 +84,7 @@ export class VolatilityFarmer {
 
             } else {
 
-                await sleepRandomAmountOfSeconds(1, intervalLengthInSeconds - 2, false)
+                // await sleepRandomAmountOfSeconds(0, intervalLengthInSeconds - 1, false)
 
                 try {
 
