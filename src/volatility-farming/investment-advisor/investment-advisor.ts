@@ -204,7 +204,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                 await VFLogger.log(message, this.apiKey, this.mongoService)
 
                 if (pnlLong < addingPointLong) {
-                    const reason = `we enhance our ${investmentOption.pair} long position due to a great price`
+                    const reason = `we enhance our ${investmentOption.pair} long position`
                     this.addInvestmentAdvice(Action.BUY, investmentOption.minTradingAmount, investmentOption.pair, reason)
                 }
 
@@ -221,7 +221,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
                 await VFLogger.log(message, this.apiKey, this.mongoService)
 
                 if (pnlShort < addingPointShort) {
-                    const reason = `we enhance our ${investmentOption.pair} short position due to a great price`
+                    const reason = `we enhance our ${investmentOption.pair} short position`
                     this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, reason)
                 }
 

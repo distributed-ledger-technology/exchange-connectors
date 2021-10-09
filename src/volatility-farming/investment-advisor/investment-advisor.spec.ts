@@ -55,7 +55,7 @@ const testSets: ITestData[] = [
                 { data: { side: "Sell", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: 1 } }],
             minimumReserve: 90
         },
-        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT long position due to a great price" }]
+        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT long position" }]
     },
     {
         input: {
@@ -65,7 +65,7 @@ const testSets: ITestData[] = [
                 { data: { side: "Sell", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: -15 } }],
             minimumReserve: 90
         },
-        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT short position due to a great price" }]
+        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT short position" }]
     },
     {
         input: {
