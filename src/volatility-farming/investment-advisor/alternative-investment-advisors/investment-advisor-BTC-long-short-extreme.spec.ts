@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.86.0/testing/asserts.ts";
 import { InvestmentDecisionBase, InvestmentAdvice, Action, IInvestmentAdvisor } from "../interfaces.ts";
-import { InvestmentAdvisor } from "../investment-advisor.ts";
+import { InvestmentAdvisorBTCLongShortExtreme } from "./investment-advisor-BTC-long-short-extreme.ts";
 
 export interface ITestData {
     input: InvestmentDecisionBase,
@@ -55,7 +55,7 @@ const testSets: ITestData[] = [
                 { data: { side: "Sell", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: 1 } }],
             minimumReserve: 90
         },
-        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT long position due to a great price" }]
+        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT long position by 0.001 due to a great price" }]
     },
     {
         input: {
@@ -65,7 +65,7 @@ const testSets: ITestData[] = [
                 { data: { side: "Sell", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: -15 } }],
             minimumReserve: 90
         },
-        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT short position due to a great price" }]
+        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT short position by 0.001 due to a great price" }]
     },
     {
         input: {
@@ -138,7 +138,7 @@ const testSets: ITestData[] = [
 ]
 Deno.test("should return great investment advices", async () => {
 
-    const investmentAdvisor: IInvestmentAdvisor = new InvestmentAdvisor("123", undefined)
+    const investmentAdvisor: IInvestmentAdvisor = new InvestmentAdvisorBTCLongShortExtreme("123", undefined)
 
     console.log(testSets.length)
 

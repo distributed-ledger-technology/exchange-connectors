@@ -23,6 +23,8 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         }
     ]
 
+    private oPNLClosingLimit = 54
+
     public constructor(private apiKey: string, private mongoService: IPersistenceService | undefined) { }
 
 
@@ -57,7 +59,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             console.log(error.message)
         }
 
-        if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0 || overallPNL > 45) {
+        if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0 || overallPNL > this.oPNLClosingLimit) {
 
             await this.checkCloseAll(investmentOption, investmentDecisionBase, liquidityLevel, overallPNL, longPosition, shortPosition)
 
@@ -113,7 +115,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         } else if (liquidityLevel === 0) {
             specificmessage = "a liquidity crisis"
 
-        } else if (overallPNL > 45) {
+        } else if (overallPNL > this.oPNLClosingLimit) {
             specificmessage = `an overall PNL of ${overallPNL}`
         }
 
@@ -135,7 +137,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         this.currentInvestmentAdvices.push(investmentAdvice2)
 
-        if (overallPNL <= 45) {
+        if (overallPNL <= this.oPNLClosingLimit) {
             const investmentAdvice3: InvestmentAdvice = {
                 action: Action.PAUSE,
                 amount: 0,
