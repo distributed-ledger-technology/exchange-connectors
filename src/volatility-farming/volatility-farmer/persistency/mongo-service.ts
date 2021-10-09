@@ -32,7 +32,7 @@ export class MongoService implements IPersistenceService {
     public static async deleteOldDealEntries(mongoService: IPersistenceService | undefined, apiKey: string) {
         try {
             if (mongoService !== undefined) {
-                await mongoService.deleteOldLogs(apiKey)
+                await mongoService.deleteOldDeals(apiKey)
             }
         } catch (error) {
             const message = `shit happened wrt database: ${error.message}`
