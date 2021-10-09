@@ -29,6 +29,18 @@ export class MongoService implements IPersistenceService {
 
     }
 
+    public static async deleteOldDealEntries(mongoService: IPersistenceService | undefined, apiKey: string) {
+        try {
+            if (mongoService !== undefined) {
+                await mongoService.deleteOldLogs(apiKey)
+            }
+        } catch (error) {
+            const message = `shit happened wrt database: ${error.message}`
+            console.log(message)
+        }
+
+    }
+
     public static async saveDeal(mongoService: IPersistenceService | undefined, deal: DealSchema) {
         try {
             if (mongoService !== undefined) {
@@ -157,6 +169,21 @@ export class MongoService implements IPersistenceService {
         console.log(`deleting all log entries older than ${refDate}`)
 
         return MongoService.logCollection.deleteMany({ apiKey, utcTime: { $lte: refDate.toISOString() } })
+
+    }
+
+    public async deleteOldDeals(apiKey: string): Promise<any[]> {
+
+        if (!this.initialized) await this.initialize()
+
+        const refDate = new Date();
+        refDate.setDate(refDate.getDate() - 2);
+
+        console.log(refDate.toISOString())
+
+        console.log(`deleting all deal entries older than ${refDate}`)
+
+        return MongoService.dealCollection.deleteMany({ apiKey, utcTime: { $lte: refDate.toISOString() } })
 
     }
 

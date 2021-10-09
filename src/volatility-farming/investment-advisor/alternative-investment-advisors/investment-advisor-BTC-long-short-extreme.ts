@@ -66,7 +66,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         for (const investmentOption of this.investmentOptions) {
             for (const move of Object.values(Action)) {
-                await sleep(0.07)
+                await sleep(0.1)
                 await this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
 
             }

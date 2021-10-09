@@ -46,7 +46,7 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
         // console.log(investmentDecisionBase)
         for (const investmentOption of this.investmentOptions) {
             for (const move of Object.values(Action)) {
-                await sleep(0.05)
+                await sleep(0.1)
                 await this.deriveInvestmentAdvice(investmentOption, move, longPosition, liquidityLevel, pnlInPercent)
 
             }
