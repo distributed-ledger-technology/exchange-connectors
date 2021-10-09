@@ -100,7 +100,7 @@ const testSets: ITestData[] = [
         },
         output: [
             { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "we close 0.01 BTCUSDT long due to an equity drop" },
-            { action: Action.REDUCESHORT, amount: 0.02, pair: "BTCUSDT", reason: "we close 0.01 BTCUSDT short due to an equity drop" },
+            { action: Action.REDUCESHORT, amount: 0.02, pair: "BTCUSDT", reason: "we close 0.02 BTCUSDT short due to an equity drop" },
             { action: Action.PAUSE, amount: 0, pair: "", reason: "we pause the game due to an equity drop" }]
     },
     {
