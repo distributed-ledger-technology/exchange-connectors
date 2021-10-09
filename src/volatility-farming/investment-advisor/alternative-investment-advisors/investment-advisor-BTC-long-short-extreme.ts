@@ -60,7 +60,10 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
             await this.checkCloseAll(investmentOption, investmentDecisionBase, liquidityLevel, overallPNL, longPosition, shortPosition)
 
-        } else if (longPosition !== undefined && shortPosition !== undefined && shortPosition.data.unrealised_pnl < 0 && longPosition.data.unrealised_pnl < 0 && liquidityLevel > 10) {
+        } else if (longPosition !== undefined && shortPosition !== undefined &&
+            (shortPosition.data.unrealised_pnl < 0 && longPosition.data.unrealised_pnl < 0 ||
+                shortPosition.data.unrealised_pnl > 0 && longPosition.data.unrealised_pnl > 0)
+            && liquidityLevel > 16) {
 
             await this.checkNarrowingDownDiffPNL(investmentOption)
 
