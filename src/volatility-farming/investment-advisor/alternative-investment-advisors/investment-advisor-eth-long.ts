@@ -1,17 +1,15 @@
 
-// this is a slightly opinionated (long) investment advisor
-// it serves edcucational purposes and shall inspire friends to implement different strategies and apply them within this network
-// https://www.math3d.org/2cj0XobI 
+// this strategy serves edcucational purposes and shall inspire friends to implement different strategies and apply them within this network
+// you can model calculation for your strategy here: https://www.math3d.org
 
 import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption, InvestmentDecisionBase, IPosition } from "./../interfaces.ts"
-import { sleep } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
-import { FinancialCalculator } from "../../../utility-boxes/financial-calculator.ts";
-import { VFLogger } from "../../../utility-boxes/logger.ts";
+import { sleep } from "../../../../deps.ts";
 import { IPersistenceService } from "../../volatility-farmer/persistency/interfaces.ts";
+import { OverallHedgeAdvisor } from "./overall-hedge-advisor.ts";
 
 
 
-export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
+export class ETHLongWithHiddenOverallHedge implements IInvestmentAdvisor {
 
     private investmentOptions: InvestmentOption[] = [
         {
@@ -22,17 +20,15 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
     private currentInvestmentAdvices: InvestmentAdvice[] = []
     private lastAddDate: Date = new Date()
-    private pnlLong = 0
-    private pnlShort = 0
     private longPosition: IPosition | undefined
     private shortPosition: IPosition | undefined
     private liquidityLevel = 0
-    private longShortDeltaInPercent = 0
+    private overallHedgeAdvisor: OverallHedgeAdvisor
 
 
-
-
-    public constructor(private apiKey: string, private persistenceService: IPersistenceService | undefined) { }
+    public constructor(private apiKey: string, private persistenceService: IPersistenceService | undefined) {
+        this.overallHedgeAdvisor = new OverallHedgeAdvisor()
+    }
 
 
     public getInvestmentOptions(): InvestmentOption[] {
@@ -44,21 +40,15 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
         this.currentInvestmentAdvices = []
 
-        this.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions)
         this.liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
-
-        this.longPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
-        this.shortPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
-
-
-        this.pnlLong = FinancialCalculator.getPNLOfPositionInPercent(this.longPosition)
-        this.pnlShort = FinancialCalculator.getPNLOfPositionInPercent(this.shortPosition)
+        this.longPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy' && p.data.symbol === this.investmentOptions[0].pair)[0]
+        this.shortPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell' && p.data.symbol === this.investmentOptions[0].pair)[0]
 
         for (const investmentOption of this.investmentOptions) {
 
             for (const move of Object.values(Action)) {
                 await sleep(0.1)
-                await this.deriveInvestmentAdvice(investmentOption, move)
+                await this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
 
             }
 
@@ -70,12 +60,12 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
 
 
-    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, potentialMove: Action): Promise<void> {
+    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, potentialMove: Action, investmentDecisionBase: InvestmentDecisionBase): Promise<void> {
 
 
         if (potentialMove === Action.PAUSE) { // here just to ensure the following block is executed only once
 
-            this.deriveSpecialMoves(investmentOption)
+            this.deriveSpecialMoves(investmentOption, investmentDecisionBase)
 
         } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
@@ -86,7 +76,7 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
     }
 
 
-    protected async deriveSpecialMoves(investmentOption: InvestmentOption) {
+    protected async deriveSpecialMoves(investmentOption: InvestmentOption, investmentDecisionBase: InvestmentDecisionBase) {
 
         if (this.longPosition === undefined) {
 
@@ -98,6 +88,12 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
             }
 
             this.currentInvestmentAdvices.push(investmentAdvice)
+
+        } else { // optimizing the overall Hedge
+
+            const hedgeMoves = await this.overallHedgeAdvisor.getRecommendedOverallHedgeMoves(investmentDecisionBase)
+
+            this.currentInvestmentAdvices = this.currentInvestmentAdvices.concat(hedgeMoves)
 
         }
 
@@ -149,4 +145,6 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
             default: // console.log(`potential move ${move} not relevant here`)
         }
     }
+
+
 }

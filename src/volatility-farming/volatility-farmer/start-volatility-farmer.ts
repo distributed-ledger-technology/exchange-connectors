@@ -1,7 +1,7 @@
 import { Registry } from "../../../deps.ts"
 import { BybitConnector } from "../../bybit/bybit-connector.ts";
 import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts";
-import { InvestmentAdvisorETHLong } from "../investment-advisor/alternative-investment-advisors/investment-advisor-eth-long.ts";
+import { ETHLongWithHiddenOverallHedge } from "../investment-advisor/alternative-investment-advisors/investment-advisor-eth-long.ts";
 import { InvestmentAdvisor } from "../investment-advisor/investment-advisor.ts";
 import { InvestmentAdvisorBTCLongShortExtreme } from "../investment-advisor/alternative-investment-advisors/investment-advisor-BTC-long-short-extreme.ts";
 import { IPersistenceService } from "./persistency/interfaces.ts";
@@ -26,7 +26,7 @@ const registryInvestmentAdvisors = new Registry()
 const registryExchangeConnectors = new Registry()
 const registryPersistenceServices = new Registry()
 
-registryInvestmentAdvisors.register(InvestmentAdvisorETHLong)
+registryInvestmentAdvisors.register(ETHLongWithHiddenOverallHedge)
 registryInvestmentAdvisors.register(InvestmentAdvisor)
 registryInvestmentAdvisors.register(InvestmentAdvisorBTCLongShortExtreme)
 registryExchangeConnectors.register(BybitConnector)

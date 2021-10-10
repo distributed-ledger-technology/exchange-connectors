@@ -162,7 +162,7 @@ export class MongoService implements IPersistenceService {
         if (!this.initialized) await this.initialize()
 
         const refDate = new Date();
-        refDate.setDate(refDate.getDate() - 1);
+        refDate.setHours(refDate.getHours() - 8);
 
         console.log(refDate.toISOString())
 
@@ -177,7 +177,7 @@ export class MongoService implements IPersistenceService {
         if (!this.initialized) await this.initialize()
 
         const refDate = new Date();
-        refDate.setDate(refDate.getDate() - 2);
+        refDate.setHours(refDate.getHours() - 8);
 
         console.log(refDate.toISOString())
 
