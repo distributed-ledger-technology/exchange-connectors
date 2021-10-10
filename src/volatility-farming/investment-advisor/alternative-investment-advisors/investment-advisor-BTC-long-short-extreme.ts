@@ -155,7 +155,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         if (result) {
 
-            return this.isPreviousAdviceOlderThanXMinutes(3)
+            return this.isPreviousAdviceOlderThanXMinutes(5)
 
         }
 
