@@ -3,19 +3,31 @@
 // it serves edcucational purposes and shall inspire friends to implement different strategies and apply them within this network
 // https://www.math3d.org/2cj0XobI 
 
-import { IInvestmentAdvisor, InvestmentAdvice, Action, InvestmentOption, InvestmentDecisionBase, IPosition } from "./interfaces.ts"
 import { sleep } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
 import { FinancialCalculator } from "../../utility-boxes/financial-calculator.ts";
 import { VFLogger } from "../../utility-boxes/logger.ts";
 import { IPersistenceService } from "../volatility-farmer/persistency/interfaces.ts";
-
-
+import { IInvestmentAdvisor, InvestmentAdvice, IPosition, InvestmentOption, Action, InvestmentDecisionBase } from "./interfaces.ts";
 
 
 export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     private currentInvestmentAdvices: InvestmentAdvice[] = []
+    private lastAdviceDate: Date = new Date()
+    private oPNLClosingLimit = 54
+    private longShortDeltaInPercent = 0
+    private liquidityLevel = 0
+    private addingPointLong = 0
+    private addingPointShort = 0
+    private closingPointLong = 0
+    private closingPointShort = 0
+    private pnlLong = 0
+    private pnlShort = 0
     private minimumReserve = 0
+    private longPosition: IPosition | undefined
+    private shortPosition: IPosition | undefined
+    private minimumLLForNarrowingDownDiffPNL = 11
+
 
     private investmentOptions: InvestmentOption[] = [
         {
@@ -24,7 +36,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         }
     ]
 
-    private oPNLClosingLimit = 54
 
     public constructor(private apiKey: string, private mongoService: IPersistenceService | undefined) { }
 
@@ -38,12 +49,26 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         this.currentInvestmentAdvices = []
 
-        // console.log(investmentDecisionBase)
+        this.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions)
+        this.liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
+
+        this.longPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
+        this.shortPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
+
+        this.addingPointLong = this.getAddingPointLong()
+        this.addingPointShort = this.getAddingPointShort()
+        this.closingPointLong = this.getClosingPointLong()
+        this.closingPointShort = this.getClosingPointShort()
+
+
+        this.pnlLong = FinancialCalculator.getPNLOfPositionInPercent(this.longPosition)
+        this.pnlShort = FinancialCalculator.getPNLOfPositionInPercent(this.shortPosition)
+
+
         for (const investmentOption of this.investmentOptions) {
             for (const move of Object.values(Action)) {
                 await sleep(0.1)
                 await this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
-
             }
 
         }
@@ -52,35 +77,166 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     }
 
-    protected async deriveSpecialCaseMoves(investmentOption: InvestmentOption, lsd: number, investmentDecisionBase: InvestmentDecisionBase, longPosition: any, shortPosition: any, liquidityLevel: number): Promise<void> {
+
+    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, investmentDecisionBase: InvestmentDecisionBase): Promise<void> {
 
 
-        let overallPNL = 0
-        try {
-            overallPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
-        } catch (error) {
-            console.log(error.message)
-        }
+        if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
 
-        if (investmentDecisionBase.accountInfo.result.USDT.equity < this.minimumReserve || liquidityLevel === 0 || overallPNL > this.oPNLClosingLimit) {
+            this.deriveSpecialCaseMoves(investmentOption, investmentDecisionBase)
 
-            await this.checkCloseAll(investmentOption, investmentDecisionBase, liquidityLevel, overallPNL, longPosition, shortPosition)
+        } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
-        } else if (longPosition !== undefined && shortPosition !== undefined && shortPosition.data.unrealised_pnl < 0 && longPosition.data.unrealised_pnl < 0 && liquidityLevel > 10) {
-
-            await this.checkNarrowingDownDiffPNL(investmentOption)
-
-        } else {
-
-            await this.checkSetup(longPosition, shortPosition, investmentOption)
+            await this.deriveStandardMoves(investmentOption, move)
 
         }
 
     }
 
 
-    protected async checkSetup(longPosition: any, shortPosition: any, investmentOption: InvestmentOption): Promise<void> {
-        if (longPosition === undefined) {
+    protected deriveSpecialCaseMoves(investmentOption: InvestmentOption, investmentDecisionBase: InvestmentDecisionBase): void {
+
+        let overallPNL = 0
+        try {
+            overallPNL = FinancialCalculator.getOverallPNLInPercent(this.longPosition, this.shortPosition)
+        } catch (error) {
+            console.log(error.message)
+        }
+
+        if (investmentDecisionBase.accountInfo.result.USDT.equity < this.minimumReserve ||
+            this.liquidityLevel === 0 || overallPNL > this.oPNLClosingLimit) {
+            this.closeAll(investmentOption, investmentDecisionBase, overallPNL)
+
+        } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.liquidityLevel > this.minimumLLForNarrowingDownDiffPNL &&
+            (this.shortPosition.data.unrealised_pnl < 0 && this.longPosition.data.unrealised_pnl < 0)) {
+
+            this.narrowDownDiffPNL(investmentOption)
+
+        } else {
+
+            this.checkSetup(investmentOption)
+
+        }
+
+    }
+
+
+    protected isPreviousAdviceOlderThanXMinutes(minutes: number): boolean {
+
+        const refDate = new Date();
+
+        refDate.setMinutes(refDate.getMinutes() - minutes);
+
+        if (this.lastAdviceDate < refDate) {
+            const message = `lastAdviceDate :${this.lastAdviceDate} vs. refDate: ${refDate}`
+            console.log(message)
+            return true
+        }
+
+        return false
+    }
+
+
+    protected amIFarAwayFromAnyRegularMove(): boolean {
+
+        const addingPointLongDelta = this.pnlLong - this.addingPointLong
+
+        const addingPointShortDelta = this.pnlShort - this.addingPointShort
+
+        const closingPointLongDelta = this.pnlLong - this.closingPointLong
+
+        const closingPointShortDelta = this.pnlShort - this.closingPointShort
+
+        const minDelta = 40
+
+        const result = (Math.abs(addingPointLongDelta) > minDelta &&
+            Math.abs(addingPointShortDelta) > minDelta &&
+            Math.abs(closingPointLongDelta) > minDelta &&
+            Math.abs(closingPointShortDelta) > minDelta)
+
+        if (result) {
+
+            return this.isPreviousAdviceOlderThanXMinutes(5)
+
+        }
+
+        return false
+
+    }
+
+
+    protected async deriveStandardMoves(investmentOption: InvestmentOption, move: Action): Promise<void> {
+
+        switch (move) {
+
+            case Action.BUY: {
+
+                const message = `adding point long: ${this.addingPointLong.toFixed(2)} (${this.pnlLong})`
+                await VFLogger.log(message, this.apiKey, this.mongoService)
+
+                if (this.pnlLong < this.addingPointLong || (this.amIFarAwayFromAnyRegularMove() &&
+                    (this.longPosition !== undefined && this.shortPosition !== undefined &&
+                        this.longPosition.data.size < this.shortPosition.data.size))) {
+                    const reason = `we enhance our ${investmentOption.pair} long position (at a pnl of: ${this.pnlLong}%) by ${investmentOption.minTradingAmount}`
+                    this.addInvestmentAdvice(Action.BUY, investmentOption.minTradingAmount, investmentOption.pair, reason)
+                }
+
+                break
+
+            }
+
+            case Action.SELL: {
+
+                const message = `adding point short: ${this.addingPointShort.toFixed(2)} (${this.pnlShort})`
+                await VFLogger.log(message, this.apiKey, this.mongoService)
+
+                if (this.pnlShort < this.addingPointShort || (this.amIFarAwayFromAnyRegularMove() &&
+                    (this.longPosition !== undefined && this.shortPosition !== undefined &&
+                        this.shortPosition.data.size < this.longPosition.data.size))) {
+
+                    const reason = `we enhance our ${investmentOption.pair} short position (at a pnl of: ${this.pnlShort}%) by ${investmentOption.minTradingAmount}`
+                    this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, reason)
+                }
+
+                break
+            }
+
+            case Action.REDUCELONG: {
+
+                const message = `closing point long: ${this.closingPointLong.toFixed(2)} (${this.pnlLong})`
+                await VFLogger.log(message, this.apiKey, this.mongoService)
+
+                if (this.pnlLong > this.closingPointLong && this.longPosition !== undefined && this.longPosition.data.size > investmentOption.minTradingAmount) {
+                    const reason = `we reduce our ${investmentOption.pair} long position to realize ${this.pnlLong}% profits`
+                    this.addInvestmentAdvice(Action.REDUCELONG, investmentOption.minTradingAmount, investmentOption.pair, reason)
+                }
+
+                break
+
+            }
+
+            case Action.REDUCESHORT: {
+
+                const message = `closing point short: ${this.closingPointShort.toFixed(2)} (${this.pnlShort})`
+                await VFLogger.log(message, this.apiKey, this.mongoService)
+
+                if (this.pnlShort > this.closingPointShort && this.shortPosition !== undefined && this.shortPosition.data.size > investmentOption.minTradingAmount) {
+                    const reason = `we reduce our ${investmentOption.pair} short position to realize ${this.pnlShort}% profits`
+                    this.addInvestmentAdvice(Action.REDUCESHORT, investmentOption.minTradingAmount, investmentOption.pair, reason)
+                }
+
+                break
+
+            }
+
+            default: throw new Error(`you detected an interesting situation`)
+
+        }
+    }
+
+
+    protected checkSetup(investmentOption: InvestmentOption): void {
+        if (this.longPosition === undefined) {
 
             const investmentAdvice: InvestmentAdvice = {
                 action: Action.BUY,
@@ -93,7 +249,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         }
 
-        if (shortPosition === undefined) {
+        if (this.shortPosition === undefined) {
 
             const investmentAdvice: InvestmentAdvice = {
                 action: Action.SELL,
@@ -109,34 +265,38 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
     }
 
 
-    protected async checkCloseAll(investmentOption: InvestmentOption, investmentDecisionBase: InvestmentDecisionBase, liquidityLevel: number, overallPNL: number, longPosition: any, shortPosition: any): Promise<void> {
+    protected closeAll(investmentOption: InvestmentOption, investmentDecisionBase: InvestmentDecisionBase, overallPNL: number): void {
 
         let specificmessage = ""
 
-        if (liquidityLevel === 0) {
+        if (this.liquidityLevel === 0) {
             specificmessage = "a liquidity crisis"
-
         } else if (overallPNL > this.oPNLClosingLimit) {
             specificmessage = `an overall PNL of ${overallPNL}`
         }
 
-        const investmentAdvice: InvestmentAdvice = {
-            action: Action.REDUCELONG,
-            amount: longPosition.data.size,
-            pair: investmentOption.pair,
-            reason: `we close ${longPosition.data.size} ${investmentOption.pair} long due to ${specificmessage}`
+        if (this.longPosition !== undefined) {
+
+            const investmentAdvice: InvestmentAdvice = {
+                action: Action.REDUCELONG,
+                amount: this.longPosition.data.size,
+                pair: investmentOption.pair,
+                reason: `we close ${this.longPosition.data.size} ${investmentOption.pair} long due to ${specificmessage}`
+            }
+
+            this.currentInvestmentAdvices.push(investmentAdvice)
         }
 
-        this.currentInvestmentAdvices.push(investmentAdvice)
+        if (this.shortPosition !== undefined) {
+            const investmentAdvice2: InvestmentAdvice = {
+                action: Action.REDUCESHORT,
+                amount: this.shortPosition.data.size,
+                pair: investmentOption.pair,
+                reason: `we close ${this.shortPosition.data.size} ${investmentOption.pair} short due to ${specificmessage}`
+            }
 
-        const investmentAdvice2: InvestmentAdvice = {
-            action: Action.REDUCESHORT,
-            amount: shortPosition.data.size,
-            pair: investmentOption.pair,
-            reason: `we close ${longPosition.data.size} ${investmentOption.pair} short due to ${specificmessage}`
+            this.currentInvestmentAdvices.push(investmentAdvice2)
         }
-
-        this.currentInvestmentAdvices.push(investmentAdvice2)
 
         if (overallPNL <= this.oPNLClosingLimit) {
             const investmentAdvice3: InvestmentAdvice = {
@@ -149,13 +309,15 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             this.currentInvestmentAdvices.push(investmentAdvice3)
         }
     }
-    protected async checkNarrowingDownDiffPNL(investmentOption: InvestmentOption): Promise<void> {
+
+
+    protected narrowDownDiffPNL(investmentOption: InvestmentOption): void {
 
         const investmentAdvice: InvestmentAdvice = {
             action: Action.BUY,
             amount: investmentOption.minTradingAmount,
             pair: investmentOption.pair,
-            reason: `we enhance both positions to narrow down the diff pnl`
+            reason: `we enhance both positions to narrow down the diff pnl (at a long pnl of: ${this.pnlLong}%)`
         }
 
         this.currentInvestmentAdvices.push(investmentAdvice)
@@ -164,111 +326,15 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             action: Action.SELL,
             amount: investmentOption.minTradingAmount,
             pair: investmentOption.pair,
-            reason: `we enhance both positions to narrow down the diff pnl`
+            reason: `we enhance both positions to narrow down the diff pnl (at a short pnl of: ${this.pnlShort}%)`
         }
 
         this.currentInvestmentAdvices.push(investmentAdvice2)
 
     }
 
-    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, investmentDecisionBase: InvestmentDecisionBase): Promise<void> {
 
-        // console.log(investmentDecisionBase.positions)
-        const longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions)
-        const liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
-
-        const longPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
-        const shortPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
-
-        if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
-
-            await this.deriveSpecialCaseMoves(investmentOption, longShortDeltaInPercent, investmentDecisionBase, longPosition, shortPosition, liquidityLevel)
-
-        } else if (longPosition !== undefined && shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
-
-            await this.deriveStandardMoves(investmentOption, longShortDeltaInPercent, move, longPosition, shortPosition, liquidityLevel)
-
-        }
-
-    }
-
-    protected async deriveStandardMoves(investmentOption: InvestmentOption, lsd: number, move: Action, longPosition: any, shortPosition: any, liquidityLevel: number): Promise<void> {
-
-        switch (move) {
-
-            case Action.BUY: {
-
-                let addingPointLong = this.getAddingPointLong(lsd, liquidityLevel)
-                let pnlLong = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
-
-                const message = `adding point long: ${addingPointLong.toFixed(2)} (${pnlLong})`
-                await VFLogger.log(message, this.apiKey, this.mongoService)
-
-                if (pnlLong < addingPointLong) {
-                    const reason = `we enhance our ${investmentOption.pair} long position`
-                    this.addInvestmentAdvice(Action.BUY, investmentOption.minTradingAmount, investmentOption.pair, reason)
-                }
-
-                break
-
-            }
-
-            case Action.SELL: {
-
-                let addingPointShort = this.getAddingPointShort(lsd, liquidityLevel)
-                let pnlShort = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
-
-                const message = `adding point short: ${addingPointShort.toFixed(2)} (${pnlShort})`
-                await VFLogger.log(message, this.apiKey, this.mongoService)
-
-                if (pnlShort < addingPointShort) {
-                    const reason = `we enhance our ${investmentOption.pair} short position`
-                    this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, reason)
-                }
-
-                break
-            }
-
-            case Action.REDUCELONG: {
-
-                let closingPointLong = this.getClosingPointLong(lsd)
-                let pnlLong = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
-
-                const message = `closing point long: ${closingPointLong.toFixed(2)} (${pnlLong})`
-                await VFLogger.log(message, this.apiKey, this.mongoService)
-
-                if (pnlLong > closingPointLong && longPosition.data.size > investmentOption.minTradingAmount) {
-                    const reason = `we reduce our ${investmentOption.pair} long position to realize ${pnlLong}% profits`
-                    this.addInvestmentAdvice(Action.REDUCELONG, investmentOption.minTradingAmount, investmentOption.pair, reason)
-                }
-
-                break
-
-            }
-
-            case Action.REDUCESHORT: {
-
-                let closingPointShort = this.getClosingPointShort(lsd)
-                let pnlShort = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
-
-                const message = `closing point short: ${closingPointShort.toFixed(2)} (${pnlShort})`
-                await VFLogger.log(message, this.apiKey, this.mongoService)
-
-                if (pnlShort > closingPointShort && shortPosition.data.size > investmentOption.minTradingAmount) {
-                    const reason = `we reduce our ${investmentOption.pair} short position to realize ${pnlShort}% profits`
-                    this.addInvestmentAdvice(Action.REDUCESHORT, investmentOption.minTradingAmount, investmentOption.pair, reason)
-                }
-
-                break
-
-            }
-
-            default: throw new Error(`you detected an interesting situation`)
-
-        }
-    }
-
-    protected addInvestmentAdvice(action: Action, amount: number, pair: string, reason: string) {
+    protected addInvestmentAdvice(action: Action, amount: number, pair: string, reason: string): void {
 
         const investmentAdvice: InvestmentAdvice = {
             action,
@@ -278,43 +344,54 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
         }
 
         this.currentInvestmentAdvices.push(investmentAdvice)
+
+        this.lastAdviceDate = new Date()
+
     }
 
-    protected getAddingPointLong(longShortDeltaInPercent: number, liquidityLevel: number): number {
+    protected getAddingPointLong(): number {
 
-        let aPL = (longShortDeltaInPercent < 0) ?
+        let aPL = (this.longShortDeltaInPercent < 0) ?
             -11 :
-            (Math.abs(longShortDeltaInPercent) * -4) - 11
+            (Math.abs(this.longShortDeltaInPercent) * -4) - 11
+
+        if (this.isPreviousAdviceOlderThanXMinutes(4)) {
+            aPL = aPL / this.liquidityLevel
+        }
 
         return aPL
 
     }
 
 
-    protected getAddingPointShort(longShortDeltaInPercent: number, liquidityLevel: number): number {
+    protected getAddingPointShort(): number {
 
-        let aPS = (longShortDeltaInPercent < 0) ?
-            (Math.abs(longShortDeltaInPercent) * -7) - 11 :
+        let aPS = (this.longShortDeltaInPercent < 0) ?
+            (Math.abs(this.longShortDeltaInPercent) * -7) - 11 :
             - 11
+
+        if (this.isPreviousAdviceOlderThanXMinutes(5)) {
+            aPS = aPS / this.liquidityLevel
+        }
 
         return aPS
 
     }
 
 
-    protected getClosingPointLong(longShortDeltaInPercent: number): number {
+    protected getClosingPointLong(): number {
 
-        return (longShortDeltaInPercent < 0) ?
-            Math.abs(longShortDeltaInPercent) * 7 + 45 :
-            36
+        return (this.longShortDeltaInPercent < 0) ?
+            Math.abs(this.longShortDeltaInPercent) * 7 + 45 :
+            45
 
     }
 
 
-    protected getClosingPointShort(longShortDeltaInPercent: number): number {
+    protected getClosingPointShort(): number {
 
-        return (longShortDeltaInPercent > 0) ?
-            longShortDeltaInPercent * 7 + 36 :
+        return (this.longShortDeltaInPercent > 0) ?
+            this.longShortDeltaInPercent * 7 + 36 :
             36
 
     }

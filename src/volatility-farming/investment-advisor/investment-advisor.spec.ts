@@ -21,14 +21,14 @@ const testSets: ITestData[] = [
     {
         input: {
             accountInfo: { result: { USDT: { available_balance: 100, equity: 100 } } },
-            positions: [{ data: { side: "Buy", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 20 } }],
+            positions: [{ data: { side: "Buy", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 0.001 } }],
         },
         output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we open a BTCUSDT short position to play the game" }]
     },
     {
         input: {
             accountInfo: { result: { USDT: { available_balance: 100, equity: 100 } } },
-            positions: [{ data: { side: "Sell", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 20 } }],
+            positions: [{ data: { side: "Sell", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: 0.002 } }],
         },
         output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we open a BTCUSDT long position to play the game" }]
     },
@@ -40,8 +40,8 @@ const testSets: ITestData[] = [
                 { data: { side: "Sell", size: 0.001, position_value: 50, leverage: 100, unrealised_pnl: -2 } }],
         },
         output: [
-            { action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance both positions to narrow down the diff pnl" },
-            { action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance both positions to narrow down the diff pnl" }]
+            { action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance both positions to narrow down the diff pnl (at a long pnl of: -400%)" },
+            { action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance both positions to narrow down the diff pnl (at a short pnl of: -400%)" }]
     },
     {
         input: {
@@ -50,7 +50,7 @@ const testSets: ITestData[] = [
                 { data: { side: "Buy", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: -20 } },
                 { data: { side: "Sell", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: 1 } }],
         },
-        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT long position" }]
+        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT long position (at a pnl of: -400%) by 0.001" }]
     },
     {
         input: {
@@ -59,7 +59,7 @@ const testSets: ITestData[] = [
                 { data: { side: "Buy", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: 1 } },
                 { data: { side: "Sell", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: -15 } }],
         },
-        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT short position" }]
+        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT short position (at a pnl of: -300%) by 0.001" }]
     },
     {
         input: {
@@ -95,11 +95,11 @@ const testSets: ITestData[] = [
         input: {
             accountInfo: { result: { USDT: { available_balance: 50, equity: 100 } } },
             positions: [
-                { data: { side: "Buy", size: 0.004, position_value: 1180, leverage: 100, unrealised_pnl: 1 } },
-                { data: { side: "Sell", size: 0.02, position_value: 2900, leverage: 100, unrealised_pnl: 1 } }],
+                { data: { side: "Buy", size: 0.004, position_value: 1180, leverage: 100, unrealised_pnl: 0.001 } },
+                { data: { side: "Sell", size: 0.02, position_value: 2900, leverage: 100, unrealised_pnl: 0.001 } }],
         },
         output: []
-    },
+    }
 ]
 Deno.test("should return great investment advices", async () => {
 

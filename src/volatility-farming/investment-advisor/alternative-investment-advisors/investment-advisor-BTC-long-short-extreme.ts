@@ -201,7 +201,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
                     if (factor < 1) factor = 1
                     const amount = investmentOption.minTradingAmount * factor
                     const reason = `we enhance our ${investmentOption.pair} short position (at a pnl of: ${this.pnlShort}%) by ${amount}`
-                    this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, reason)
+                    this.addInvestmentAdvice(Action.SELL, amount, investmentOption.pair, reason)
                 }
 
                 break
