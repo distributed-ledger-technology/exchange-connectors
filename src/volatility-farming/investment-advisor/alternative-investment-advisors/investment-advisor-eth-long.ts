@@ -22,8 +22,17 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
     private currentInvestmentAdvices: InvestmentAdvice[] = []
     private lastAddDate: Date = new Date()
+    private pnlLong = 0
+    private pnlShort = 0
+    private longPosition: IPosition | undefined
+    private shortPosition: IPosition | undefined
+    private liquidityLevel = 0
+    private longShortDeltaInPercent = 0
 
-    public constructor(private apiKey: string, private persistenceService: IPersistenceService) { }
+
+
+
+    public constructor(private apiKey: string, private persistenceService: IPersistenceService | undefined) { }
 
 
     public getInvestmentOptions(): InvestmentOption[] {
@@ -35,18 +44,21 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
         this.currentInvestmentAdvices = []
 
-        const liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
-        const longPosition: IPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
+        this.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions)
+        this.liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
 
-        let pnlInPercent = (longPosition === undefined) ? 0 : FinancialCalculator.getPNLOfPositionInPercent(longPosition)
+        this.longPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
+        this.shortPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell')[0]
 
-        const message = `liquidity level: ${liquidityLevel.toFixed(2)}`
-        await VFLogger.log(message, this.apiKey, this.persistenceService)
+
+        this.pnlLong = FinancialCalculator.getPNLOfPositionInPercent(this.longPosition)
+        this.pnlShort = FinancialCalculator.getPNLOfPositionInPercent(this.shortPosition)
 
         for (const investmentOption of this.investmentOptions) {
+
             for (const move of Object.values(Action)) {
                 await sleep(0.1)
-                await this.deriveInvestmentAdvice(investmentOption, move, longPosition, liquidityLevel, pnlInPercent)
+                await this.deriveInvestmentAdvice(investmentOption, move)
 
             }
 
@@ -58,32 +70,49 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
 
 
-    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, longPosition: any | undefined, liquidityLevel: number, pnlInPercent: number): Promise<void> {
+    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, potentialMove: Action): Promise<void> {
 
-        switch (move) {
-            case Action.PAUSE: {
 
-                if (longPosition === undefined) {
+        if (potentialMove === Action.PAUSE) { // here just to ensure the following block is executed only once
 
-                    const investmentAdvice: InvestmentAdvice = {
-                        action: Action.BUY,
-                        amount: investmentOption.minTradingAmount,
-                        pair: investmentOption.pair,
-                        reason: `we open a ${investmentOption.pair} long position to play the game`
-                    }
+            this.deriveSpecialMoves(investmentOption)
 
-                    this.currentInvestmentAdvices.push(investmentAdvice)
+        } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
-                }
+            await this.deriveStandardMoves(investmentOption, potentialMove)
 
+        }
+
+    }
+
+
+    protected async deriveSpecialMoves(investmentOption: InvestmentOption) {
+
+        if (this.longPosition === undefined) {
+
+            const investmentAdvice: InvestmentAdvice = {
+                action: Action.BUY,
+                amount: investmentOption.minTradingAmount,
+                pair: investmentOption.pair,
+                reason: `we open a(n) ${investmentOption.pair} long position to play the game`
             }
-                break
+
+            this.currentInvestmentAdvices.push(investmentAdvice)
+
+        }
+
+    }
+
+
+    protected async deriveStandardMoves(investmentOption: InvestmentOption, potentialMove: Action) {
+        switch (potentialMove) {
+
             case Action.BUY: {
 
                 const refDate = new Date();
                 refDate.setMinutes(refDate.getMinutes() - 30);
 
-                if (liquidityLevel > 19 || (liquidityLevel < 11 && liquidityLevel > 3 && this.lastAddDate < refDate)) {
+                if (this.liquidityLevel > 19 || (this.liquidityLevel < 11 && this.liquidityLevel > 3 && this.lastAddDate < refDate)) {
 
                     const investmentAdvice: InvestmentAdvice = {
                         action: Action.BUY,
@@ -99,10 +128,11 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
 
             }
                 break
+
             case Action.REDUCELONG: {
 
-                if (liquidityLevel === 0) {
-                    const amount = Number((longPosition.data.size / 2).toFixed(2))
+                if (this.liquidityLevel === 0 && this.longPosition !== undefined) {
+                    const amount = Number((this.longPosition.data.size / 2).toFixed(2))
                     const investmentAdvice: InvestmentAdvice = {
                         action: Action.REDUCELONG,
                         amount,
@@ -116,8 +146,7 @@ export class InvestmentAdvisorETHLong implements IInvestmentAdvisor {
             }
                 break
 
-            default: // console.log(`potential move ${move} not relevant for this advisor`)
+            default: // console.log(`potential move ${move} not relevant here`)
         }
     }
-
 }

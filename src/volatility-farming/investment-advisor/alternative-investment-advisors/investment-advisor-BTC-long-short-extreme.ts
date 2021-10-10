@@ -23,10 +23,11 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     private closingPointShort = 0
     private pnlLong = 0
     private pnlShort = 0
-    private minimumReserve = 0
     private longPosition: IPosition | undefined
     private shortPosition: IPosition | undefined
+    private minimumReserve = 0
     private minimumLLForNarrowingDownDiffPNL = 11
+    private accountInfo: any | undefined
 
 
     private investmentOptions: InvestmentOption[] = [
@@ -49,6 +50,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         this.currentInvestmentAdvices = []
 
+        this.accountInfo = investmentDecisionBase.accountInfo
         this.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions)
         this.liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
 
@@ -68,7 +70,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
         for (const investmentOption of this.investmentOptions) {
             for (const move of Object.values(Action)) {
                 await sleep(0.1)
-                await this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
+                await this.deriveInvestmentAdvice(investmentOption, move)
             }
 
         }
@@ -78,12 +80,12 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     }
 
 
-    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, investmentDecisionBase: InvestmentDecisionBase): Promise<void> {
+    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action): Promise<void> {
 
 
         if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
 
-            this.deriveSpecialCaseMoves(investmentOption, investmentDecisionBase)
+            this.deriveSpecialCaseMoves(investmentOption)
 
         } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
@@ -94,7 +96,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     }
 
 
-    protected deriveSpecialCaseMoves(investmentOption: InvestmentOption, investmentDecisionBase: InvestmentDecisionBase): void {
+    protected deriveSpecialCaseMoves(investmentOption: InvestmentOption): void {
 
         let overallPNL = 0
         try {
@@ -103,9 +105,9 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             console.log(error.message)
         }
 
-        if (investmentDecisionBase.accountInfo.result.USDT.equity < this.minimumReserve ||
+        if (this.accountInfo.result.USDT.equity < this.minimumReserve ||
             this.liquidityLevel === 0 || overallPNL > this.oPNLClosingLimit) {
-            this.closeAll(investmentOption, investmentDecisionBase, overallPNL)
+            this.closeAll(investmentOption, overallPNL)
 
         } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.liquidityLevel > this.minimumLLForNarrowingDownDiffPNL &&
             (this.shortPosition.data.unrealised_pnl < 0 && this.longPosition.data.unrealised_pnl < 0)) {
@@ -271,7 +273,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     }
 
 
-    protected closeAll(investmentOption: InvestmentOption, investmentDecisionBase: InvestmentDecisionBase, overallPNL: number): void {
+    protected closeAll(investmentOption: InvestmentOption, overallPNL: number): void {
 
         let specificmessage = ""
 
