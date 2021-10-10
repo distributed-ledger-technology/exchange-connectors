@@ -179,7 +179,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
                     let factor = Math.floor(Math.abs(this.longShortDeltaInPercent) / 10)
                     if (factor < 1) factor = 1
                     const amount = investmentOption.minTradingAmount * factor
-                    const reason = `we enhance our ${investmentOption.pair} long position by ${amount}`
+                    const reason = `we enhance our ${investmentOption.pair} long position (at a pnl of: ${this.pnlLong}%) by ${amount}`
                     this.addInvestmentAdvice(Action.BUY, amount, investmentOption.pair, reason)
                 }
 
@@ -199,7 +199,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
                     let factor = Math.floor(Math.abs(this.longShortDeltaInPercent) / 10)
                     if (factor < 1) factor = 1
                     const amount = investmentOption.minTradingAmount * factor
-                    const reason = `we enhance our ${investmentOption.pair} short position by ${amount}`
+                    const reason = `we enhance our ${investmentOption.pair} short position (at a pnl of: ${this.pnlShort}%) by ${amount}`
                     this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, reason)
                 }
 
@@ -325,7 +325,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             action: Action.BUY,
             amount: investmentOption.minTradingAmount,
             pair: investmentOption.pair,
-            reason: `we enhance both positions to narrow down the diff pnl`
+            reason: `we enhance both positions to narrow down the diff pnl (at a long pnl of: ${this.pnlLong}%)`
         }
 
         this.currentInvestmentAdvices.push(investmentAdvice)
@@ -334,7 +334,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             action: Action.SELL,
             amount: investmentOption.minTradingAmount,
             pair: investmentOption.pair,
-            reason: `we enhance both positions to narrow down the diff pnl`
+            reason: `we enhance both positions to narrow down the diff pnl (at a short pnl of: ${this.pnlShort}%)`
         }
 
         this.currentInvestmentAdvices.push(investmentAdvice2)

@@ -44,8 +44,8 @@ const testSets: ITestData[] = [
             minimumReserve: 90
         },
         output: [
-            { action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance both positions to narrow down the diff pnl" },
-            { action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance both positions to narrow down the diff pnl" }]
+            { action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance both positions to narrow down the diff pnl (at a long pnl of: -400%)" },
+            { action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance both positions to narrow down the diff pnl (at a short pnl of: -400%)" }]
     },
     {
         input: {
@@ -55,7 +55,7 @@ const testSets: ITestData[] = [
                 { data: { side: "Sell", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: 1 } }],
             minimumReserve: 90
         },
-        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT long position by 0.001" }]
+        output: [{ action: Action.BUY, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT long position (at a pnl of: -400%) by 0.001" }]
     },
     {
         input: {
@@ -65,7 +65,7 @@ const testSets: ITestData[] = [
                 { data: { side: "Sell", size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: -15 } }],
             minimumReserve: 90
         },
-        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT short position by 0.001" }]
+        output: [{ action: Action.SELL, amount: 0.001, pair: "BTCUSDT", reason: "we enhance our BTCUSDT short position (at a pnl of: -300%) by 0.001" }]
     },
     {
         input: {
