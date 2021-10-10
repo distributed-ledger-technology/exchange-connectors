@@ -107,8 +107,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             this.closeAll(investmentOption, investmentDecisionBase, overallPNL)
 
         } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.liquidityLevel > this.minimumLLForNarrowingDownDiffPNL &&
-            (this.shortPosition.data.unrealised_pnl < 0 && this.longPosition.data.unrealised_pnl < 0 ||
-                (this.shortPosition.data.unrealised_pnl > 1 && this.longPosition.data.unrealised_pnl > 1 && this.isPreviousAdviceOlderThanXMinutes(3)))) {
+            (this.shortPosition.data.unrealised_pnl < 0 && this.longPosition.data.unrealised_pnl < 0)) {
 
             this.narrowDownDiffPNL(investmentOption)
 
@@ -128,6 +127,8 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
         refDate.setMinutes(refDate.getMinutes() - minutes);
 
         if (this.lastAdviceDate < refDate) {
+            const message = `lastAdviceDate :${this.lastAdviceDate} vs. refDate: ${refDate}`
+            console.log(message)
             return true
         }
 
