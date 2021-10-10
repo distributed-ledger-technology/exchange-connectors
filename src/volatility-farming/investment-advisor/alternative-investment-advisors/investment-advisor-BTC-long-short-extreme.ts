@@ -23,6 +23,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     private closingPointShort = 0
     private pnlLong = 0
     private pnlShort = 0
+    private minimumReserve = 0
     private longPosition: IPosition | undefined
     private shortPosition: IPosition | undefined
     private minimumLLForNarrowingDownDiffPNL = 11
@@ -102,7 +103,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             console.log(error.message)
         }
 
-        if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve ||
+        if (investmentDecisionBase.accountInfo.result.USDT.equity < this.minimumReserve ||
             this.liquidityLevel === 0 || overallPNL > this.oPNLClosingLimit) {
             this.closeAll(investmentOption, investmentDecisionBase, overallPNL)
 
@@ -274,11 +275,8 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         let specificmessage = ""
 
-        if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve) {
-            specificmessage = "an equity drop"
-        } else if (this.liquidityLevel === 0) {
+        if (this.liquidityLevel === 0) {
             specificmessage = "a liquidity crisis"
-
         } else if (overallPNL > this.oPNLClosingLimit) {
             specificmessage = `an overall PNL of ${overallPNL}`
         }

@@ -4,7 +4,7 @@ import { Action, IInvestmentAdvisor, InvestmentAdvice, InvestmentDecisionBase } 
 import { IExchangeConnector } from "../../interfaces/exchange-connector-interface.ts"
 import { AccountInfoSchema, DealSchema, IPersistenceService } from "./persistency/interfaces.ts"
 import { MongoService } from "./persistency/mongo-service.ts"
-import { sleep, sleepRandomAmountOfSeconds } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
+import { sleep } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
 import { VFLogger } from "../../utility-boxes/logger.ts";
 import { FinancialCalculator } from "../../utility-boxes/financial-calculator.ts";
 
@@ -13,8 +13,6 @@ export interface IActiveProcess {
     exchangeConnector: IExchangeConnector,
     intervalId: number,
     iterationCounter: number
-    pauseCounter: number
-    minimumReserve: number
     pair: string
     tradingAmount: number
 }
@@ -39,8 +37,6 @@ export class VolatilityFarmer {
             exchangeConnector: this.exchangeConnector,
             intervalId: 0,
             iterationCounter: 0,
-            pauseCounter: 0,
-            minimumReserve: 0,
             pair: investmentAdvisor.getInvestmentOptions()[0].pair,
             tradingAmount: 0.001
         }
@@ -78,23 +74,14 @@ export class VolatilityFarmer {
                 await MongoService.deleteOldDealEntries(this.mongoService, this.apiKey)
             }
 
-            if (this.activeProcess.pauseCounter > 0) {
 
-                await this.pause()
+            try {
 
-            } else {
+                await this.playTheGame()
 
-                // await sleepRandomAmountOfSeconds(0, intervalLengthInSeconds - 1, false)
+            } catch (error) {
 
-                try {
-
-                    await this.playTheGame()
-
-                } catch (error) {
-
-                    console.log(error.message)
-
-                }
+                console.log(error.message)
 
             }
 
@@ -120,11 +107,6 @@ export class VolatilityFarmer {
 
         this.positions = await this.exchangeConnector.getPositions()
 
-        if (this.activeProcess.iterationCounter === 1 || this.activeProcess.iterationCounter % 5000 === 0) {
-            console.log(`setting minimumReserve to ${this.accountInfo.result.USDT.equity * 0.9}`)
-            this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
-        }
-
         const longPosition = this.positions.filter((p: any) => p.data.side === 'Buy')[0]
         const shortPosition = this.positions.filter((p: any) => p.data.side === 'Sell')[0]
 
@@ -139,7 +121,7 @@ export class VolatilityFarmer {
         this.accountInfoCash.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(this.positions)
         this.accountInfoCash.strategy = this.investmentAdvisor.constructor.name
 
-        const message = `*********** minReserve ${this.activeProcess.minimumReserve.toFixed(2)} - equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
+        const message = `*********** equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
 
         await VFLogger.log(message, this.apiKey, this.mongoService)
 
@@ -152,7 +134,6 @@ export class VolatilityFarmer {
         this.investmentDecisionBase = {
             accountInfo: this.accountInfo,
             positions: this.positions,
-            minimumReserve: this.activeProcess.minimumReserve
         }
 
         return this.investmentAdvisor.getInvestmentAdvices(this.investmentDecisionBase)
@@ -207,42 +188,10 @@ export class VolatilityFarmer {
 
             }
 
-            if (investmentAdvice.action === Action.PAUSE) {
-                this.activeProcess.pauseCounter = 1000
-            }
-
         }
 
     }
 
-
-
-    protected async pause(): Promise<void> {
-
-        if (this.activeProcess.pauseCounter === 1000) {
-
-            this.accountInfo = await this.exchangeConnector.getFuturesAccountData()
-            this.positions = await this.exchangeConnector.getPositions()
-
-            this.accountInfoCash.equity = this.accountInfo.result.USDT.equity
-            this.accountInfoCash.avaliableBalance = this.accountInfo.result.USDT.available_balance
-
-            this.accountInfoCash.longPositionSize = 0
-            this.accountInfoCash.shortPositionSize = 0
-
-        }
-
-        this.activeProcess.pauseCounter--
-
-        const message = `pauseCounter: ${this.activeProcess.pauseCounter}`
-
-        await VFLogger.log(message, this.apiKey, this.mongoService)
-
-        if (this.activeProcess.pauseCounter === 0) {
-            this.activeProcess.minimumReserve = this.accountInfo.result.USDT.equity * 0.9
-        }
-
-    }
 
 
     protected checkParameters(intervalLengthInSeconds: number): void {

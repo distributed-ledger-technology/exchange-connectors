@@ -23,7 +23,6 @@ export interface InvestmentOption {
 export interface InvestmentDecisionBase {
     accountInfo: any,
     positions: any,
-    minimumReserve: number
 }
 
 export interface IPosition {

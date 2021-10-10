@@ -15,6 +15,7 @@ import { IPersistenceService } from "../volatility-farmer/persistency/interfaces
 export class InvestmentAdvisor implements IInvestmentAdvisor {
 
     private currentInvestmentAdvices: InvestmentAdvice[] = []
+    private minimumReserve = 0
 
     private investmentOptions: InvestmentOption[] = [
         {
@@ -61,7 +62,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             console.log(error.message)
         }
 
-        if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve || liquidityLevel === 0 || overallPNL > this.oPNLClosingLimit) {
+        if (investmentDecisionBase.accountInfo.result.USDT.equity < this.minimumReserve || liquidityLevel === 0 || overallPNL > this.oPNLClosingLimit) {
 
             await this.checkCloseAll(investmentOption, investmentDecisionBase, liquidityLevel, overallPNL, longPosition, shortPosition)
 
@@ -112,9 +113,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         let specificmessage = ""
 
-        if (investmentDecisionBase.accountInfo.result.USDT.equity < investmentDecisionBase.minimumReserve) {
-            specificmessage = "an equity drop"
-        } else if (liquidityLevel === 0) {
+        if (liquidityLevel === 0) {
             specificmessage = "a liquidity crisis"
 
         } else if (overallPNL > this.oPNLClosingLimit) {
