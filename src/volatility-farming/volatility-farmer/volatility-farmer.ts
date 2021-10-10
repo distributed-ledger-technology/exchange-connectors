@@ -27,6 +27,7 @@ export class VolatilityFarmer {
     private positions: any[] = [] // shall be defined properly as soon as we have a long term dex connected
     private investmentDecisionBase: InvestmentDecisionBase | undefined
     private accountInfoCash: AccountInfoSchema
+    private liquidityLevel = 0
 
 
 
@@ -120,12 +121,14 @@ export class VolatilityFarmer {
         this.accountInfoCash.overallUnrealizedPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
         this.accountInfoCash.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(this.positions)
         this.accountInfoCash.strategy = this.investmentAdvisor.constructor.name
+        this.liquidityLevel = (this.accountInfo.result.USDT.available_balance / this.accountInfo.result.USDT.equity) * 20
 
-        const message = `*********** equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
+        const message = `*********** equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - ll: ${this.liquidityLevel} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
 
         await VFLogger.log(message, this.apiKey, this.mongoService)
 
         await MongoService.saveAccountInfoCash(this.mongoService, this.accountInfoCash)
+
     }
 
 
