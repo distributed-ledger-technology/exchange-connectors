@@ -149,7 +149,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         const closingPointShortDelta = this.pnlShort - this.closingPointShort
 
-        const minDelta = 40
+        const minDelta = 50
 
         const result = (Math.abs(addingPointLongDelta) > minDelta &&
             Math.abs(addingPointShortDelta) > minDelta &&
@@ -158,7 +158,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         if (result) {
 
-            return this.isPreviousAdviceOlderThanXMinutes(5)
+            return this.isPreviousAdviceOlderThanXMinutes(20)
 
         }
 
