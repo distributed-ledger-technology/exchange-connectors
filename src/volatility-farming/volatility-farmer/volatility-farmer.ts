@@ -123,7 +123,7 @@ export class VolatilityFarmer {
         this.accountInfoCash.strategy = this.investmentAdvisor.constructor.name
         this.liquidityLevel = (this.accountInfo.result.USDT.available_balance / this.accountInfo.result.USDT.equity) * 20
 
-        const message = `*********** equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - ll: ${this.liquidityLevel} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
+        const message = `*********** equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - ll: ${this.liquidityLevel.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
 
         await VFLogger.log(message, this.apiKey, this.mongoService)
 
