@@ -298,16 +298,6 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
             this.currentInvestmentAdvices.push(investmentAdvice2)
         }
 
-        if (overallPNL <= this.oPNLClosingLimit) {
-            const investmentAdvice3: InvestmentAdvice = {
-                action: Action.PAUSE,
-                amount: 0,
-                pair: '',
-                reason: `we pause the game due to ${specificmessage}`
-            }
-
-            this.currentInvestmentAdvices.push(investmentAdvice3)
-        }
     }
 
 

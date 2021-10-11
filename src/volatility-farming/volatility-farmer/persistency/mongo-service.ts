@@ -41,6 +41,43 @@ export class MongoService implements IPersistenceService {
 
     }
 
+
+    public static async deleteAccountInfoCash(mongoService: IPersistenceService | undefined, accountInfoCash: AccountInfoSchema) {
+        try {
+            if (mongoService !== undefined) {
+                await mongoService.updateAccountInfo(accountInfoCash)
+            }
+        } catch (error) {
+            const message = `shit happened wrt database: ${error.message}`
+            console.log(message)
+        }
+
+    }
+
+    public static async deleteLogEntries(mongoService: IPersistenceService | undefined, apiKey: string) {
+        try {
+            if (mongoService !== undefined) {
+                await mongoService.deleteOldLogs(apiKey)
+            }
+        } catch (error) {
+            const message = `shit happened wrt database: ${error.message}`
+            console.log(message)
+        }
+
+    }
+
+    public static async deleteDealEntries(mongoService: IPersistenceService | undefined, apiKey: string) {
+        try {
+            if (mongoService !== undefined) {
+                await mongoService.deleteOldDeals(apiKey)
+            }
+        } catch (error) {
+            const message = `shit happened wrt database: ${error.message}`
+            console.log(message)
+        }
+
+    }
+
     public static async saveDeal(mongoService: IPersistenceService | undefined, deal: DealSchema) {
         try {
             if (mongoService !== undefined) {
@@ -185,6 +222,19 @@ export class MongoService implements IPersistenceService {
 
         return MongoService.dealCollection.deleteMany({ apiKey, utcTime: { $lte: refDate.toISOString() } })
 
+    }
+
+
+    public async deleteAccountInfoCash(apiKey: string): Promise<void> {
+        await MongoService.accountInfosCollection.delete({ apiKey })
+    }
+
+    public async deleteDeals(apiKey: string): Promise<void> {
+        await MongoService.dealCollection.delete({ apiKey })
+    }
+
+    public async deleteLogs(apiKey: string): Promise<void> {
+        await MongoService.logCollection.delete({ apiKey })
     }
 
 

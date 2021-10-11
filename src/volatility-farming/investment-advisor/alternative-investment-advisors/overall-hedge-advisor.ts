@@ -22,6 +22,8 @@ export class OverallHedgeAdvisor {
         // console.log(assetsUnderManagementDemoAccounts)
         const lsd = assetsUnderManagementDemoAccounts.longPosSum - assetsUnderManagementDemoAccounts.shortPosSum
 
+        console.log(`lsd: ${lsd}`)
+
         this.hedgeLongPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy' && p.data.symbol === this.hedgePositionPair)[0]
         this.hedgeShortPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Sell' && p.data.symbol === this.hedgePositionPair)[0]
 
