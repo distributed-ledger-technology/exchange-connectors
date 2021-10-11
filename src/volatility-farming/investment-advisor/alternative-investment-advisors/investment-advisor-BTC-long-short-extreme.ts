@@ -85,7 +85,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
 
-            this.deriveSpecialCaseMoves(investmentOption)
+            this.deriveSpecialMoves(investmentOption)
 
         } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
@@ -96,7 +96,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     }
 
 
-    protected deriveSpecialCaseMoves(investmentOption: InvestmentOption): void {
+    protected deriveSpecialMoves(investmentOption: InvestmentOption): void {
 
         let overallPNL = 0
         try {
@@ -105,9 +105,15 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             console.log(error.message)
         }
 
-        if (this.accountInfo.result.USDT.equity < this.minimumReserve ||
-            this.liquidityLevel === 0 || overallPNL > this.oPNLClosingLimit) {
-            this.closeAll(investmentOption, overallPNL)
+        this.oPNLClosingLimit = Math.round(Math.random() * (81 - 56) + 56)
+
+        if (this.liquidityLevel === 0) {
+
+            this.closeAll(investmentOption, overallPNL, "a liquidity crisis")
+
+        } else if (overallPNL > this.oPNLClosingLimit) {
+
+            this.closeAll(investmentOption, overallPNL, `an overall PNL of ${overallPNL}`)
 
         } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.liquidityLevel > this.minimumLLForNarrowingDownDiffPNL &&
             (this.shortPosition.data.unrealised_pnl < 0 && this.longPosition.data.unrealised_pnl < 0)) {
@@ -273,15 +279,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     }
 
 
-    protected closeAll(investmentOption: InvestmentOption, overallPNL: number): void {
-
-        let specificmessage = ""
-
-        if (this.liquidityLevel === 0) {
-            specificmessage = "a liquidity crisis"
-        } else if (overallPNL > this.oPNLClosingLimit) {
-            specificmessage = `an overall PNL of ${overallPNL}`
-        }
+    protected closeAll(investmentOption: InvestmentOption, overallPNL: number, specificmessage: string): void {
 
         if (this.longPosition !== undefined) {
 
@@ -389,19 +387,30 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
     protected getClosingPointLong(): number {
 
-        return (this.longShortDeltaInPercent < 0) ?
+        let cPL = (this.longShortDeltaInPercent < 0) ?
             Math.abs(this.longShortDeltaInPercent) * 7 + 45 :
             45
+
+        if (this.liquidityLevel < 5) {
+            cPL = cPL / (10 - this.liquidityLevel)
+        }
+
+        return cPL
 
     }
 
 
     protected getClosingPointShort(): number {
 
-        return (this.longShortDeltaInPercent > 0) ?
+        let cPS = (this.longShortDeltaInPercent > 0) ?
             this.longShortDeltaInPercent * 7 + 36 :
             36
 
+        if (this.liquidityLevel < 5) {
+            cPS = cPS / (10 - this.liquidityLevel)
+        }
+
+        return cPS
     }
 
 }
