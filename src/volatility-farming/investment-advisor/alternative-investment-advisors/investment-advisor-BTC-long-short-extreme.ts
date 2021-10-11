@@ -252,27 +252,13 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     protected checkSetup(investmentOption: InvestmentOption): void {
         if (this.longPosition === undefined) {
 
-            const investmentAdvice: InvestmentAdvice = {
-                action: Action.BUY,
-                amount: investmentOption.minTradingAmount,
-                pair: investmentOption.pair,
-                reason: `we open a ${investmentOption.pair} long position to play the game`
-            }
-
-            this.currentInvestmentAdvices.push(investmentAdvice)
+            this.addInvestmentAdvice(Action.BUY, investmentOption.minTradingAmount, investmentOption.pair, `we open a ${investmentOption.pair} long position to play the game`)
 
         }
 
         if (this.shortPosition === undefined) {
 
-            const investmentAdvice: InvestmentAdvice = {
-                action: Action.SELL,
-                amount: investmentOption.minTradingAmount,
-                pair: investmentOption.pair,
-                reason: `we open a ${investmentOption.pair} short position to play the game`
-            }
-
-            this.currentInvestmentAdvices.push(investmentAdvice)
+            this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, `we open a ${investmentOption.pair} short position to play the game`)
 
         }
 
@@ -283,59 +269,32 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         if (this.longPosition !== undefined) {
 
-            const investmentAdvice: InvestmentAdvice = {
-                action: Action.REDUCELONG,
-                amount: Number((this.longPosition.data.size).toFixed(3)),
-                pair: investmentOption.pair,
-                reason: `we close ${this.longPosition.data.size} ${investmentOption.pair} long due to ${specificmessage}`
-            }
-
-            this.currentInvestmentAdvices.push(investmentAdvice)
+            this.addInvestmentAdvice(Action.REDUCELONG, Number((this.longPosition.data.size).toFixed(3)), investmentOption.pair, `we close ${this.longPosition.data.size} ${investmentOption.pair} long due to ${specificmessage}`)
         }
 
         if (this.shortPosition !== undefined) {
-            const investmentAdvice2: InvestmentAdvice = {
-                action: Action.REDUCESHORT,
-                amount: Number((this.shortPosition.data.size).toFixed(3)),
-                pair: investmentOption.pair,
-                reason: `we close ${this.shortPosition.data.size} ${investmentOption.pair} short due to ${specificmessage}`
-            }
 
-            this.currentInvestmentAdvices.push(investmentAdvice2)
+            this.addInvestmentAdvice(Action.REDUCESHORT, Number((this.shortPosition.data.size).toFixed(3)), investmentOption.pair, `we close ${this.shortPosition.data.size} ${investmentOption.pair} short due to ${specificmessage}`)
+
         }
 
-        if (overallPNL <= this.oPNLClosingLimit) {
-            const investmentAdvice3: InvestmentAdvice = {
-                action: Action.PAUSE,
-                amount: 0,
-                pair: '',
-                reason: `we pause the game due to ${specificmessage}`
-            }
+        // if (overallPNL <= this.oPNLClosingLimit) {
+        //     const investmentAdvice3: InvestmentAdvice = {
+        //         action: Action.PAUSE,
+        //         amount: 0,
+        //         pair: '',
+        //         reason: `we pause the game due to ${specificmessage}`
+        //     }
 
-            this.currentInvestmentAdvices.push(investmentAdvice3)
-        }
+        //     this.currentInvestmentAdvices.push(investmentAdvice3)
+        // }
     }
 
 
     protected narrowDownDiffPNL(investmentOption: InvestmentOption): void {
 
-        const investmentAdvice: InvestmentAdvice = {
-            action: Action.BUY,
-            amount: investmentOption.minTradingAmount,
-            pair: investmentOption.pair,
-            reason: `we enhance both positions to narrow down the diff pnl (at a long pnl of: ${this.pnlLong}%)`
-        }
-
-        this.currentInvestmentAdvices.push(investmentAdvice)
-
-        const investmentAdvice2: InvestmentAdvice = {
-            action: Action.SELL,
-            amount: investmentOption.minTradingAmount,
-            pair: investmentOption.pair,
-            reason: `we enhance both positions to narrow down the diff pnl (at a short pnl of: ${this.pnlShort}%)`
-        }
-
-        this.currentInvestmentAdvices.push(investmentAdvice2)
+        this.addInvestmentAdvice(Action.BUY, investmentOption.minTradingAmount, investmentOption.pair, `we enhance both positions to narrow down the diff pnl (at a long pnl of: ${this.pnlLong}%)`)
+        this.addInvestmentAdvice(Action.SELL, investmentOption.minTradingAmount, investmentOption.pair, `we enhance both positions to narrow down the diff pnl (at a short pnl of: ${this.pnlShort}%)`)
 
     }
 
@@ -361,7 +320,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             -11 :
             (Math.abs(this.longShortDeltaInPercent) * -4) - 11
 
-        if (this.isPreviousAdviceOlderThanXMinutes(4)) {
+        if (this.isPreviousAdviceOlderThanXMinutes(7)) {
             aPL = aPL / this.liquidityLevel
         }
 
@@ -376,7 +335,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             (Math.abs(this.longShortDeltaInPercent) * -7) - 11 :
             - 11
 
-        if (this.isPreviousAdviceOlderThanXMinutes(5)) {
+        if (this.isPreviousAdviceOlderThanXMinutes(10)) {
             aPS = aPS / this.liquidityLevel
         }
 

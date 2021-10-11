@@ -48,7 +48,7 @@ export class OverallHedgeAdvisor {
             console.log(message)
 
             investmentAdviceOverallHedge = {
-                action: Action.BUY,
+                action: Action.SELL,
                 amount: this.hedgePositionTradingAmount,
                 pair: this.hedgePositionPair,
                 reason: message
