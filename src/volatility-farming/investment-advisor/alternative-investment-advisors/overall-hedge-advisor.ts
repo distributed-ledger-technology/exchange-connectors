@@ -58,7 +58,7 @@ export class OverallHedgeAdvisor {
 
         } else if (lsd > 0.1) {
 
-            const message = `we shall hedge against about ${lsd} ${this.hedgePositionPair} long - adding 0.001 to short ${this.hedgePositionPair} position`
+            const message = `we shall hedge against about ${lsd.toFixed(2)} ${this.hedgePositionPair} long - adding 0.001 to short ${this.hedgePositionPair} position`
 
             console.log(message)
 
@@ -82,7 +82,7 @@ export class OverallHedgeAdvisor {
                 reason: message
             }
 
-        } else if (Math.abs(lsd) < 0.3) {
+        } else if (Math.abs(lsd) < 0.05) {
 
 
             this.hedgePNLLong = FinancialCalculator.getPNLOfPositionInPercent(this.hedgeLongPosition)

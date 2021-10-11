@@ -28,17 +28,20 @@ export class VolatilityFarmer {
     private investmentDecisionBase: InvestmentDecisionBase | undefined
     private accountInfoCash: AccountInfoSchema
     private liquidityLevel = 0
+    private pair = ""
 
 
 
     public constructor(private apiKey: string, private apiSecret: string, private exchangeConnector: IExchangeConnector, private investmentAdvisor: IInvestmentAdvisor, private mongoService: IPersistenceService | undefined) {
+
+        this.pair = this.investmentAdvisor.getInvestmentOptions()[0].pair
 
         this.activeProcess = {
             apiKey,
             exchangeConnector: this.exchangeConnector,
             intervalId: 0,
             iterationCounter: 0,
-            pair: investmentAdvisor.getInvestmentOptions()[0].pair,
+            pair: this.pair,
             tradingAmount: 0.001
         }
 
@@ -108,8 +111,8 @@ export class VolatilityFarmer {
 
         this.positions = await this.exchangeConnector.getPositions()
 
-        const longPosition = this.positions.filter((p: any) => p.data.side === 'Buy')[0]
-        const shortPosition = this.positions.filter((p: any) => p.data.side === 'Sell')[0]
+        const longPosition = this.positions.filter((p: any) => p.data.side === 'Buy' && p.data.symbol === this.pair)[0]
+        const shortPosition = this.positions.filter((p: any) => p.data.side === 'Sell' && p.data.symbol === this.pair)[0]
 
         this.accountInfoCash.equity = this.accountInfo.result.USDT.equity
         this.accountInfoCash.avaliableBalance = this.accountInfo.result.USDT.available_balance

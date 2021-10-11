@@ -25,9 +25,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     private pnlShort = 0
     private longPosition: IPosition | undefined
     private shortPosition: IPosition | undefined
-    private minimumReserve = 0
     private minimumLLForNarrowingDownDiffPNL = 11
-    private accountInfo: any | undefined
 
 
     private investmentOptions: InvestmentOption[] = [
@@ -50,7 +48,6 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         this.currentInvestmentAdvices = []
 
-        this.accountInfo = investmentDecisionBase.accountInfo
         this.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions)
         this.liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
 
@@ -109,13 +106,14 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         if (this.liquidityLevel === 0) {
 
-            this.closeAll(investmentOption, overallPNL, "a liquidity crisis")
+            this.closeAll(investmentOption, "a liquidity crisis")
 
         } else if (overallPNL > this.oPNLClosingLimit) {
 
-            this.closeAll(investmentOption, overallPNL, `an overall PNL of ${overallPNL}`)
+            this.closeAll(investmentOption, `an overall PNL of ${overallPNL}`)
 
-        } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.liquidityLevel > this.minimumLLForNarrowingDownDiffPNL &&
+        } else if (this.longPosition !== undefined && this.shortPosition !== undefined &&
+            this.liquidityLevel > this.minimumLLForNarrowingDownDiffPNL &&
             (this.shortPosition.data.unrealised_pnl < 0 && this.longPosition.data.unrealised_pnl < 0)) {
 
             this.narrowDownDiffPNL(investmentOption)
@@ -265,7 +263,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     }
 
 
-    protected closeAll(investmentOption: InvestmentOption, overallPNL: number, specificmessage: string): void {
+    protected closeAll(investmentOption: InvestmentOption, specificmessage: string): void {
 
         if (this.longPosition !== undefined) {
 
@@ -278,16 +276,6 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         }
 
-        // if (overallPNL <= this.oPNLClosingLimit) {
-        //     const investmentAdvice3: InvestmentAdvice = {
-        //         action: Action.PAUSE,
-        //         amount: 0,
-        //         pair: '',
-        //         reason: `we pause the game due to ${specificmessage}`
-        //     }
-
-        //     this.currentInvestmentAdvices.push(investmentAdvice3)
-        // }
     }
 
 
