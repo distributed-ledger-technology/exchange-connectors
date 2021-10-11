@@ -181,7 +181,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
                         this.longPosition.data.size < this.shortPosition.data.size))) {
                     let factor = Math.floor(Math.abs(this.longShortDeltaInPercent) / 10)
                     if (factor < 1) factor = 1
-                    const amount = investmentOption.minTradingAmount * factor
+                    const amount = Number((investmentOption.minTradingAmount * factor).toFixed(3))
                     const reason = `we enhance our ${investmentOption.pair} long position (at a pnl of: ${this.pnlLong}%) by ${amount}`
                     this.addInvestmentAdvice(Action.BUY, amount, investmentOption.pair, reason)
                 }
@@ -201,7 +201,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
                     let factor = Math.floor(Math.abs(this.longShortDeltaInPercent) / 10)
                     if (factor < 1) factor = 1
-                    const amount = investmentOption.minTradingAmount * factor
+                    const amount = Number((investmentOption.minTradingAmount * factor).toFixed(3))
                     const reason = `we enhance our ${investmentOption.pair} short position (at a pnl of: ${this.pnlShort}%) by ${amount}`
                     this.addInvestmentAdvice(Action.SELL, amount, investmentOption.pair, reason)
                 }
@@ -287,7 +287,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
             const investmentAdvice: InvestmentAdvice = {
                 action: Action.REDUCELONG,
-                amount: this.longPosition.data.size,
+                amount: Number((this.longPosition.data.size).toFixed(3)),
                 pair: investmentOption.pair,
                 reason: `we close ${this.longPosition.data.size} ${investmentOption.pair} long due to ${specificmessage}`
             }
@@ -298,7 +298,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
         if (this.shortPosition !== undefined) {
             const investmentAdvice2: InvestmentAdvice = {
                 action: Action.REDUCESHORT,
-                amount: this.shortPosition.data.size,
+                amount: Number((this.shortPosition.data.size).toFixed(3)),
                 pair: investmentOption.pair,
                 reason: `we close ${this.shortPosition.data.size} ${investmentOption.pair} short due to ${specificmessage}`
             }
