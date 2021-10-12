@@ -180,9 +180,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
                 const message = `adding point long: ${this.addingPointLong.toFixed(2)} (${this.pnlLong})`
                 await VFLogger.log(message, this.apiKey, this.mongoService)
 
-                if (this.pnlLong < this.addingPointLong || (this.amIFarAwayFromAnyRegularMove() &&
-                    (this.longPosition !== undefined && this.shortPosition !== undefined &&
-                        this.longPosition.data.size < this.shortPosition.data.size))) {
+                if (this.pnlLong < this.addingPointLong) {
                     let factor = Math.floor(Math.abs(this.longShortDeltaInPercent) / 10)
                     if (factor < 1) factor = 1
                     const amount = Number((investmentOption.minTradingAmount * factor).toFixed(3))
@@ -199,9 +197,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
                 const message = `adding point short: ${this.addingPointShort.toFixed(2)} (${this.pnlShort})`
                 await VFLogger.log(message, this.apiKey, this.mongoService)
 
-                if (this.pnlShort < this.addingPointShort || (this.amIFarAwayFromAnyRegularMove() &&
-                    (this.longPosition !== undefined && this.shortPosition !== undefined &&
-                        this.shortPosition.data.size < this.longPosition.data.size))) {
+                if (this.pnlShort < this.addingPointShort) {
 
                     let factor = Math.floor(Math.abs(this.longShortDeltaInPercent) / 10)
                     if (factor < 1) factor = 1

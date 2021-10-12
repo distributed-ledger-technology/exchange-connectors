@@ -107,7 +107,7 @@ export class VolatilityFarmer {
     protected async collectFundamentals() {
 
         this.accountInfo = await this.exchangeConnector.getFuturesAccountData()
-        if (this.accountInfo.result.USDT.equity === 0) throw new Error(`r u kidding me?`)
+        if (!(this.accountInfo.result.USDT.equity > 0)) throw new Error(`r u kidding me?`) // also in case the exchange api delivers shit
 
         this.positions = await this.exchangeConnector.getPositions()
 
