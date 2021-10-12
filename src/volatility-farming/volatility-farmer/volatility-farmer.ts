@@ -122,7 +122,7 @@ export class VolatilityFarmer {
         this.accountInfoCash.longPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
         this.accountInfoCash.shortPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
         this.accountInfoCash.overallUnrealizedPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
-        this.accountInfoCash.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(this.positions)
+        this.accountInfoCash.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(this.positions, this.pair)
         this.accountInfoCash.strategy = this.investmentAdvisor.constructor.name
         this.liquidityLevel = (this.accountInfo.result.USDT.available_balance / this.accountInfo.result.USDT.equity) * 20
 

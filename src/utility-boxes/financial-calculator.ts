@@ -21,10 +21,10 @@ export class FinancialCalculator {
         return Number((position.data.unrealised_pnl * 100 / (position.data.position_value / position.data.leverage)).toFixed(2))
     }
 
-    public static getLongShortDeltaInPercent(positions: any[]): number {
+    public static getLongShortDeltaInPercent(positions: any[], pair?: string): number {
 
-        const sumOfLongValues = FinancialCalculator.getSumOfValues('Buy', positions)
-        const sumOfShortValues = FinancialCalculator.getSumOfValues('Sell', positions)
+        const sumOfLongValues = FinancialCalculator.getSumOfValues('Buy', positions, pair)
+        const sumOfShortValues = FinancialCalculator.getSumOfValues('Sell', positions, pair)
 
         const deltaLongShort = Number((sumOfLongValues - sumOfShortValues).toFixed(2))
         const totalOpenPositionValue = Number((sumOfLongValues + sumOfShortValues).toFixed(2))

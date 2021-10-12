@@ -48,7 +48,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         this.currentInvestmentAdvices = []
 
-        this.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions)
+        this.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions, this.investmentOptions[0].pair)
         this.liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
 
         this.longPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy' && p.data.symbol === this.investmentOptions[0].pair)[0]
@@ -110,7 +110,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         } else if (overallPNL > this.oPNLClosingLimit) {
 
-            this.closeAll(investmentOption, `an overall PNL of ${overallPNL}`)
+            this.closeAll(investmentOption, `an overall PNL of ${overallPNL.toFixed(2)}`)
 
         } else if (this.longPosition !== undefined && this.shortPosition !== undefined &&
             this.liquidityLevel > this.minimumLLForNarrowingDownDiffPNL &&

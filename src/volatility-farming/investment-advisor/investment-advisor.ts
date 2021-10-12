@@ -49,7 +49,7 @@ export class InvestmentAdvisor implements IInvestmentAdvisor {
 
         this.currentInvestmentAdvices = []
 
-        this.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions)
+        this.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(investmentDecisionBase.positions, this.investmentOptions[0].pair)
         this.liquidityLevel = (investmentDecisionBase.accountInfo.result.USDT.available_balance / investmentDecisionBase.accountInfo.result.USDT.equity) * 20
 
         this.longPosition = investmentDecisionBase.positions.filter((p: any) => p.data.side === 'Buy')[0]
