@@ -124,9 +124,10 @@ export class VolatilityFarmer {
         this.accountInfoCash.shortPositionSize = (shortPosition === undefined) ? 0 : shortPosition.data.size
 
         this.accountInfoCash.stabilityPositionSize = (stabilityPosition === undefined) ? 0 : stabilityPosition.data.size
+        this.accountInfoCash.stabilityPositionPNL = FinancialCalculator.getPNLOfPositionInPercent(stabilityPosition)
 
-        this.accountInfoCash.longPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
-        this.accountInfoCash.shortPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
+        this.accountInfoCash.longPositionPNLInPercent =
+            this.accountInfoCash.shortPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
         this.accountInfoCash.overallUnrealizedPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
         this.accountInfoCash.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(this.positions, this.pair)
         this.accountInfoCash.strategy = this.investmentAdvisor.constructor.name
