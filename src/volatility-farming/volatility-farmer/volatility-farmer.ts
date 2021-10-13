@@ -127,14 +127,15 @@ export class VolatilityFarmer {
         this.accountInfoCash.stabilityPositionSize = (stabilityPosition === undefined) ? 0 : stabilityPosition.data.size
         this.accountInfoCash.stabilityPositionPNL = FinancialCalculator.getPNLOfPositionInPercent(stabilityPosition)
 
-        this.accountInfoCash.longPositionPNLInPercent =
-            this.accountInfoCash.shortPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
+        this.accountInfoCash.longPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
+        this.accountInfoCash.shortPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
         this.accountInfoCash.overallUnrealizedPNL = FinancialCalculator.getOverallPNLInPercent(longPosition, shortPosition)
         this.accountInfoCash.longShortDeltaInPercent = FinancialCalculator.getLongShortDeltaInPercent(this.positions, this.pair)
+        const lsdV = FinancialCalculator.getLongShortDeltaValue(this.positions, this.pair)
         this.accountInfoCash.strategy = this.investmentAdvisor.constructor.name
         this.liquidityLevel = (this.accountInfo.result.USDT.available_balance / this.accountInfo.result.USDT.equity) * 20
 
-        const message = `*********** equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - ll: ${this.liquidityLevel.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} ***********`
+        const message = `*********** equity: ${this.accountInfo.result.USDT.equity.toFixed(2)} - ll: ${this.liquidityLevel.toFixed(2)} - oPNL: ${this.accountInfoCash.overallUnrealizedPNL.toFixed(2)} - lsdV: ${lsdV.toFixed(2)} ***********`
 
         await VFLogger.log(message, this.apiKey, this.mongoService)
 

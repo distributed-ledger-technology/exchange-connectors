@@ -7,7 +7,7 @@ import { sleep } from "https://deno.land/x/sleep@v1.2.0/mod.ts";
 import { FinancialCalculator } from "../../../utility-boxes/financial-calculator.ts";
 import { VFLogger } from "../../../utility-boxes/logger.ts";
 import { IPersistenceService } from "../../volatility-farmer/persistency/interfaces.ts";
-import { IInvestmentAdvisor, InvestmentAdvice, InvestmentOption, Action, InvestmentDecisionBase, IPosition } from "../interfaces.ts";
+import { IInvestmentAdvisor, InvestmentAdvice, InvestmentOption, Action, IPosition } from "../interfaces.ts";
 
 
 export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor {

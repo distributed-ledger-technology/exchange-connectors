@@ -35,6 +35,17 @@ export class FinancialCalculator {
 
     }
 
+    public static getLongShortDeltaValue(positions: any[], pair?: string): number {
+
+        const sumOfLongValues = FinancialCalculator.getSumOfValues('Buy', positions, pair)
+        const sumOfShortValues = FinancialCalculator.getSumOfValues('Sell', positions, pair)
+
+        const longShortDeltaValue = Number((sumOfLongValues - sumOfShortValues).toFixed(2))
+
+        return longShortDeltaValue
+
+    }
+
 
 
     public static getSumOfValues(side: string, activePositions: any[], pair?: string): number {
