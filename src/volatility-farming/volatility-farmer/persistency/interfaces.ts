@@ -22,6 +22,7 @@ export interface AccountInfoSchema {
     shortPositionPNLInPercent: number
     longShortDeltaInPercent: number
     overallUnrealizedPNL: number
+    stabilityPositionSize: number
     botStatus: string
     strategy: string
 }

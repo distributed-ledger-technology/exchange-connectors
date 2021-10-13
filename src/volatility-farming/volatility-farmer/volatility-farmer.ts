@@ -29,6 +29,7 @@ export class VolatilityFarmer {
     private accountInfoCash: AccountInfoSchema
     private liquidityLevel = 0
     private pair = ""
+    private longTermStabilityHaven = "ETHUSDT"
 
 
 
@@ -58,6 +59,7 @@ export class VolatilityFarmer {
             shortPositionPNLInPercent: 0,
             longShortDeltaInPercent: 0,
             overallUnrealizedPNL: 0,
+            longETHPositionSize: 0,
             botStatus: 'active',
             strategy: this.investmentAdvisor.constructor.name
         }
@@ -114,10 +116,14 @@ export class VolatilityFarmer {
         const longPosition = this.positions.filter((p: any) => p.data.side === 'Buy' && p.data.symbol === this.pair)[0]
         const shortPosition = this.positions.filter((p: any) => p.data.side === 'Sell' && p.data.symbol === this.pair)[0]
 
+        const stabilityPosition = this.positions.filter((p: any) => p.data.side === 'Buy' && p.data.symbol === `${this.longTermStabilityHaven}`)[0]
+
         this.accountInfoCash.equity = this.accountInfo.result.USDT.equity
         this.accountInfoCash.avaliableBalance = this.accountInfo.result.USDT.available_balance
         this.accountInfoCash.longPositionSize = (longPosition === undefined) ? 0 : longPosition.data.size
         this.accountInfoCash.shortPositionSize = (shortPosition === undefined) ? 0 : shortPosition.data.size
+
+        this.accountInfoCash.stabilityPositionSize = (stabilityPosition === undefined) ? 0 : stabilityPosition.data.size
 
         this.accountInfoCash.longPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(longPosition)
         this.accountInfoCash.shortPositionPNLInPercent = FinancialCalculator.getPNLOfPositionInPercent(shortPosition)
