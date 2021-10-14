@@ -108,7 +108,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
             this.closeAll(investmentOption, "a liquidity crisis")
 
-        } else if (overallPNL > this.oPNLClosingLimit && (this.liquidityLevel > 17 || this.liquidityLevel < 13)) {
+        } else if (overallPNL > this.oPNLClosingLimit && (this.liquidityLevel > 19 || this.liquidityLevel < 13)) {
 
             this.closeAll(investmentOption, `an overall PNL of ${overallPNL.toFixed(2)}`)
 
