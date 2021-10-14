@@ -78,8 +78,8 @@ const testSets: ITestData[] = [
                 { data: { side: "Sell", symbol: 'BTCUSDT', size: 0.01, position_value: 500, leverage: 100, unrealised_pnl: -25 } }],
         },
         output: [
-            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "we close 0.01 BTCUSDT long due to a liquidity crisis" },
-            { action: Action.REDUCESHORT, amount: 0.01, pair: "BTCUSDT", reason: "we close 0.01 BTCUSDT short due to a liquidity crisis" }]
+            { action: Action.REDUCELONG, amount: 0.01, pair: "BTCUSDT", reason: "we close 0.01 BTCUSDT long due to a liquidity crisis - ll: 0.00 - equity: 100" },
+            { action: Action.REDUCESHORT, amount: 0.01, pair: "BTCUSDT", reason: "we close 0.01 BTCUSDT short due to a liquidity crisis - ll: 0.00 - equity: 100" }]
     },
     {
         input: {
