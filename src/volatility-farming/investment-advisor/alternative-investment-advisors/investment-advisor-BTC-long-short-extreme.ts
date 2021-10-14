@@ -67,7 +67,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
         for (const investmentOption of this.investmentOptions) {
             for (const move of Object.values(Action)) {
                 await sleep(0.1)
-                await this.deriveInvestmentAdvice(investmentOption, move)
+                await this.deriveInvestmentAdvice(investmentOption, move, investmentDecisionBase)
             }
 
         }
@@ -77,12 +77,12 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     }
 
 
-    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action): Promise<void> {
+    protected async deriveInvestmentAdvice(investmentOption: InvestmentOption, move: Action, investmentDecisionBase: any): Promise<void> {
 
 
         if (move === Action.PAUSE) { // here just to ensure the following block is executed only once
 
-            this.deriveSpecialMoves(investmentOption)
+            this.deriveSpecialMoves(investmentOption, investmentDecisionBase)
 
         } else if (this.longPosition !== undefined && this.shortPosition !== undefined && this.currentInvestmentAdvices.length === 0) {
 
@@ -93,7 +93,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     }
 
 
-    protected deriveSpecialMoves(investmentOption: InvestmentOption): void {
+    protected deriveSpecialMoves(investmentOption: InvestmentOption, investmentDecisionBase: any): void {
 
         let overallPNL = 0
         try {
@@ -106,11 +106,11 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         if (this.liquidityLevel === 0) {
 
-            this.closeAll(investmentOption, "a liquidity crisis")
+            this.closeAll(investmentOption, `a liquidity crisis - ll: ${this.liquidityLevel.toFixed(2)} - equity: ${investmentDecisionBase.accountInfo.result.USDT.equity}`)
 
         } else if (overallPNL > this.oPNLClosingLimit && (this.liquidityLevel > 19 || this.liquidityLevel < 13)) {
 
-            this.closeAll(investmentOption, `an overall PNL of ${overallPNL.toFixed(2)}`)
+            this.closeAll(investmentOption, `an overall PNL of ${overallPNL.toFixed(2)} - ll: ${this.liquidityLevel.toFixed(2)} - equity: ${investmentDecisionBase.accountInfo.result.USDT.equity}`)
 
         } else if (this.longPosition !== undefined && this.shortPosition !== undefined &&
             this.liquidityLevel > this.minimumLLForNarrowingDownDiffPNL &&
