@@ -1,7 +1,7 @@
 export interface IPersistenceService {
     updateAccountInfo(accountInfoCash: AccountInfoSchema): Promise<void>
     deleteOldLogs(apiKey: string): Promise<any[]>
-    deleteOldDeals(apiKey: string): Promise<any[]>
+    deleteOldDeals(apiKey: string, deleteDealEntriesAfterXHours: number): Promise<any[]>
     deleteAccountInfoCash(apiKey: string): Promise<void>
     deleteLogs(apiKey: string): Promise<void>
     deleteDeals(apiKey: string): Promise<void>

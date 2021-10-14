@@ -29,10 +29,10 @@ export class MongoService implements IPersistenceService {
 
     }
 
-    public static async deleteOldDealEntries(mongoService: IPersistenceService | undefined, apiKey: string) {
+    public static async deleteOldDealEntries(mongoService: IPersistenceService | undefined, apiKey: string, deleteDealEntriesAfterXHours: number = 1829) {
         try {
             if (mongoService !== undefined) {
-                await mongoService.deleteOldDeals(apiKey)
+                await mongoService.deleteOldDeals(apiKey, deleteDealEntriesAfterXHours)
             }
         } catch (error) {
             const message = `shit happened wrt database: ${error.message}`
@@ -66,10 +66,10 @@ export class MongoService implements IPersistenceService {
 
     }
 
-    public static async deleteDealEntries(mongoService: IPersistenceService | undefined, apiKey: string) {
+    public static async deleteDealEntries(mongoService: IPersistenceService | undefined, apiKey: string, deleteDealEntriesAfterXHours: number) {
         try {
             if (mongoService !== undefined) {
-                await mongoService.deleteOldDeals(apiKey)
+                await mongoService.deleteOldDeals(apiKey, deleteDealEntriesAfterXHours)
             }
         } catch (error) {
             const message = `shit happened wrt database: ${error.message}`
@@ -209,12 +209,12 @@ export class MongoService implements IPersistenceService {
 
     }
 
-    public async deleteOldDeals(apiKey: string): Promise<any[]> {
+    public async deleteOldDeals(apiKey: string, deleteDealEntriesAfterXHours: number): Promise<any[]> {
 
         if (!this.initialized) await this.initialize()
 
         const refDate = new Date();
-        refDate.setHours(refDate.getHours() - 8);
+        refDate.setHours(refDate.getHours() - deleteDealEntriesAfterXHours);
 
         console.log(refDate.toISOString())
 

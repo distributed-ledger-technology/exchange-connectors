@@ -76,12 +76,6 @@ export class VolatilityFarmer {
 
             this.activeProcess.iterationCounter++
 
-            if (this.activeProcess.iterationCounter % 2000 === 0) {
-                await MongoService.deleteOldLogEntries(this.mongoService, this.apiKey)
-                await MongoService.deleteOldDealEntries(this.mongoService, this.apiKey)
-            }
-
-
             try {
 
                 await this.playTheGame()
