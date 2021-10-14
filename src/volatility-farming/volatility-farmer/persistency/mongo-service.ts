@@ -1,5 +1,6 @@
 
 import { MongoClient, Database } from "https://deno.land/x/mongo/mod.ts"
+import { GeneralUtilityBox } from "../../../utility-boxes/general-utility-box.ts";
 import { AccountInfoSchema, DealSchema, IPersistenceService, LogSchema } from "./interfaces.ts"
 
 
@@ -213,8 +214,8 @@ export class MongoService implements IPersistenceService {
 
         if (!this.initialized) await this.initialize()
 
-        const refDate = new Date();
-        refDate.setHours(refDate.getHours() - deleteDealEntriesAfterXHours);
+
+        const refDate = GeneralUtilityBox.subtractXHoursFromDate(deleteDealEntriesAfterXHours, new Date())
 
         console.log(refDate.toISOString())
 

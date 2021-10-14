@@ -10,4 +10,14 @@ export class GeneralUtilityBox {
 
     }
 
+
+    public static subtractXHoursFromDate(numberOfHoursToBeSubracted: number, date: Date) {
+        let unixTS = date.getTime()
+
+        unixTS = unixTS - (numberOfHoursToBeSubracted * 1000 * 60 * 60)
+
+        return new Date(unixTS)
+
+    }
+
 }
