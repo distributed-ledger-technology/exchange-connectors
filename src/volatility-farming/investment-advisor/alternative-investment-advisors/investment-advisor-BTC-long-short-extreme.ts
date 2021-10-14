@@ -308,6 +308,10 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             aPL = aPL / (this.liquidityLevel / 3)
         }
 
+        if (this.liquidityLevel < 10) {
+            aPL = aPL * (12 - this.liquidityLevel)
+        }
+
         return aPL
 
     }
@@ -321,6 +325,10 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         if (this.isPreviousAdviceOlderThanXMinutes(60)) {
             aPS = aPS / (this.liquidityLevel / 3)
+        }
+
+        if (this.liquidityLevel < 10) {
+            aPS = aPS * (12 - this.liquidityLevel)
         }
 
         return aPS

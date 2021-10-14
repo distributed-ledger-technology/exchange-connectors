@@ -4,3 +4,4 @@ deno test --unstable src/volatility-farming/investment-advisor/alternative-inves
 
 deno test --unstable src/volatility-farming/investment-advisor/alternative-investment-advisors/investment-advisor-BTC-long-short-extreme.spec.ts
 
+deno test src/utility-boxes/general-utility-box.spec.ts
