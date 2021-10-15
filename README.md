@@ -58,8 +58,9 @@ deno run --unstable --allow-net https://deno.land/x/exchange_connectors/src/vola
 #### Via PM2 (in the background)
 
 ```sh
-
-pm2 start -n "volatility-farming" --interpreter="deno" --interpreter-args="run --unstable --allow-net" https://deno.land/x/exchange_connectors/src/volatility-farming/volatility-farmer/start-volatility-farmer.ts -- <yourByBitAPIKey> <yourByBitAPISecret> <yourMongoDBUser> <yourMongoDBPassword> InvestmentAdvisorBTCLongShortExtreme BybitConnector MongoService 
+git clone https://github.com/distributed-ledger-technology/exchange-connectors.git  
+cd exchange-connectors  
+pm2 start -n "volatility-farming" --interpreter="deno" --interpreter-args="run --unstable --allow-net" ./src/volatility-farming/volatility-farmer/start-volatility-farmer.ts -- <yourByBitAPIKey> <yourByBitAPISecret> <yourMongoDBUser> <yourMongoDBPassword> InvestmentAdvisorBTCLongShortExtreme BybitConnector MongoService 
 
 ```  
 
