@@ -5,7 +5,7 @@ This module provides a range of Exchange Connectors.
 This shall support the emergence of perfect markets by simplifying market access.
 
 ## Centralized Exchanges (CEXes)
-### Bybit
+### Bybit General Interaction
 See also the [Bybit Example Client](https://github.com/michael-spengler/exchange-connectors/blob/main/src/bybit/usage-example-client.ts) and 
 [Bybit Connector](https://github.com/michael-spengler/exchange-connectors/blob/main/src/bybit/bybit-connector.ts) for more usage examples.
 
@@ -36,6 +36,23 @@ const apiSecret = Deno.args[1]
 const exampleClient = new ExampleClient(apiKey, apiSecret)
 
 await exampleClient.showUsageExamples()
+
+```
+
+### Bybit Usage Example: Volatility Farming
+#### Via Deno (need to keep the terminal open)
+
+```sh
+
+deno run --unstable --allow-net https://deno.land/x/exchange_connectors/src/volatility-farming/volatility-farmer/start-volatility-farmer.ts <yourByBitAPIKey> <yourByBitAPISecret> <yourMongoDBUser> <yourMongoDBPassword> InvestmentAdvisorBTCLongShortExtreme BybitConnector MongoService
+
+```
+
+#### Via PM2 (in the background)
+
+```sh
+
+pm2 start -n "volatility-farming" --interpreter="deno" --interpreter-args="run --unstable --allow-net" https://deno.land/x/exchange_connectors/src/volatility-farming/volatility-farmer/start-volatility-farmer.ts -- <yourByBitAPIKey> <yourByBitAPISecret> <yourMongoDBUser> <yourMongoDBPassword> InvestmentAdvisorBTCLongShortExtreme BybitConnector MongoService 
 
 ```
 
