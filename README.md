@@ -2,7 +2,14 @@
 
 This module provides a range of Exchange Connectors. 
 
-This shall support the emergence of perfect markets by simplifying market access.
+This shall support the emergence of perfect markets by simplifying market access etc.
+
+To showcase the features at hand from a business perspective we introduce [**Volatility Farming**](https://openforce.de/) - hoping to set a trend here :)  
+  
+**Volatility Farming** exploits unnecessary (manipulation induced) volatility and supports the emergence of a reasonable (fundamentals based) price stability - especially when it is done via DAOs with huge capital pools - open to people - supporting layer 0 :)  
+
+Contributions are welcome - please raise issues or PRs to share improvement proposals or contact us via our english-, russian- and german speaking [Telegram Group](https://t.me/joinchat/hHBzeNpKyOk5MmIy).  
+
 
 ## Centralized Exchanges (CEXes)
 ### Bybit General Interaction
@@ -54,8 +61,9 @@ deno run --unstable --allow-net https://deno.land/x/exchange_connectors/src/vola
 
 pm2 start -n "volatility-farming" --interpreter="deno" --interpreter-args="run --unstable --allow-net" https://deno.land/x/exchange_connectors/src/volatility-farming/volatility-farmer/start-volatility-farmer.ts -- <yourByBitAPIKey> <yourByBitAPISecret> <yourMongoDBUser> <yourMongoDBPassword> InvestmentAdvisorBTCLongShortExtreme BybitConnector MongoService 
 
-```
+```  
 
+Explore it in action: https://openforce.de/
 
 ## Decentralized Exchanges (DEXes)
 Under Construction  
