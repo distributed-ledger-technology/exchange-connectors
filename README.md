@@ -1,8 +1,6 @@
 # Exchange Connectors
 
-This module provides a range of Exchange Connectors. 
-
-This shall support the emergence of perfect markets by simplifying market access etc.
+This module shall support the emergence of perfect markets by simplifying market access etc.
 
 To showcase the features at hand from a business perspective we introduce [**Volatility Farming**](https://openforce.de/) - hoping to set a trend here :)  
   
