@@ -102,7 +102,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             console.log(error.message)
         }
 
-        this.oPNLClosingLimit = Math.round(Math.random() * (81 - 56) + 56)
+        this.oPNLClosingLimit = Math.round(Math.random() * (81 - 45) + 45)
 
         if (this.liquidityLevel === 0) {
 
@@ -142,33 +142,6 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
         return false
     }
 
-
-    protected amIFarAwayFromAnyRegularMove(): boolean {
-
-        const addingPointLongDelta = this.pnlLong - this.addingPointLong
-
-        const addingPointShortDelta = this.pnlShort - this.addingPointShort
-
-        const closingPointLongDelta = this.pnlLong - this.closingPointLong
-
-        const closingPointShortDelta = this.pnlShort - this.closingPointShort
-
-        const minDelta = 50
-
-        const result = (Math.abs(addingPointLongDelta) > minDelta &&
-            Math.abs(addingPointShortDelta) > minDelta &&
-            Math.abs(closingPointLongDelta) > minDelta &&
-            Math.abs(closingPointShortDelta) > minDelta)
-
-        if (result) {
-
-            return this.isPreviousAdviceOlderThanXMinutes(20)
-
-        }
-
-        return false
-
-    }
 
 
     protected async deriveStandardMoves(investmentOption: InvestmentOption, move: Action): Promise<void> {
