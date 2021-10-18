@@ -106,7 +106,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         if (this.liquidityLevel === 0) {
 
-            this.closeAll(investmentOption, `a liquidity crisis - ll: ${this.liquidityLevel.toFixed(2)} - equity: ${investmentDecisionBase.accountInfo.result.USDT.equity}`)
+            this.closeAll(investmentOption, `a liquidity crisis - ll: ${this.liquidityLevel.toFixed(2)} - equity: ${investmentDecisionBase.accountInfo.result.USDT.equity.toFixed(2)}`)
 
         } else if (overallPNL > this.oPNLClosingLimit && (this.liquidityLevel > 19 || this.liquidityLevel < 13)) {
 
