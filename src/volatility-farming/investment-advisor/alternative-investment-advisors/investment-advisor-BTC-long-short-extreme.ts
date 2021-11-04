@@ -102,7 +102,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             console.log(error.message)
         }
 
-        this.oPNLClosingLimit = Math.round(Math.random() * (81 - 45) + 45)
+        this.oPNLClosingLimit = Math.round(Math.random() * (81 - 36) + 36)
 
         console.log(`overallPNL: ${overallPNL} vs. oPNLClosingLimit: ${this.oPNLClosingLimit} vs. liquidityLevel: ${this.liquidityLevel}`)
 
@@ -279,7 +279,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             -11 :
             (Math.abs(this.longShortDeltaInPercent) * -4) - 11
 
-        if (this.isPreviousAdviceOlderThanXMinutes(3)) {
+        if (this.isPreviousAdviceOlderThanXMinutes(Math.round(Math.random() * (4 - 2) + 2))) {
             aPL = aPL / (this.liquidityLevel * 2)
         }
 
@@ -298,7 +298,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             (Math.abs(this.longShortDeltaInPercent) * -7) - 11 :
             - 11
 
-        if (this.isPreviousAdviceOlderThanXMinutes(3)) {
+        if (this.isPreviousAdviceOlderThanXMinutes(Math.round(Math.random() * (4 - 2) + 2))) {
             aPS = aPS / (this.liquidityLevel * 2)
         }
 
