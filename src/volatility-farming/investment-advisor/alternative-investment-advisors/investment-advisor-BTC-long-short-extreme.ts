@@ -315,7 +315,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         let cPL = (this.longShortDeltaInPercent < 0) ?
             Math.abs(this.longShortDeltaInPercent) * 7 + 45 :
-            45
+            36
 
         if (this.liquidityLevel < 3) {
             cPL = cPL / (10 - this.liquidityLevel)
@@ -330,7 +330,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
         let cPS = (this.longShortDeltaInPercent > 0) ?
             this.longShortDeltaInPercent * 7 + 36 :
-            36
+            24
 
         if (this.liquidityLevel < 3) {
             cPS = cPS / (10 - this.liquidityLevel)
