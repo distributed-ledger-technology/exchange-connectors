@@ -294,12 +294,12 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
     protected getAddingPointShort(): number {
 
-        let aPS = (this.longShortDeltaInPercent < 0) ?
-            (Math.abs(this.longShortDeltaInPercent) * -7) - 11 :
-            - 11
+        let aPS = (this.longShortDeltaInPercent > 0) ?
+            - 11 :
+            (Math.abs(this.longShortDeltaInPercent) * -7) - 11
 
         if (this.isPreviousAdviceOlderThanXMinutes(Math.round(Math.random() * (4 - 1) + 1))) {
-            aPS = aPS / (this.liquidityLevel / 2.4)
+            aPS = aPS / (this.liquidityLevel / 2)
         }
 
         if (this.liquidityLevel < 9) {
@@ -313,9 +313,9 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
     protected getClosingPointLong(): number {
 
-        let cPL = (this.longShortDeltaInPercent < 0) ?
-            Math.abs(this.longShortDeltaInPercent) * 7 + 45 :
-            36
+        let cPL = (this.longShortDeltaInPercent > 0) ?
+            36 :
+            Math.abs(this.longShortDeltaInPercent) * 3 + 36
 
         if (this.liquidityLevel < 1) {
             cPL = 0
@@ -328,9 +328,9 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
 
     protected getClosingPointShort(): number {
 
-        let cPS = (this.longShortDeltaInPercent > 0) ?
-            this.longShortDeltaInPercent * 7 + 36 :
-            24
+        let cPS = (this.longShortDeltaInPercent < 0) ?
+            24 :
+            this.longShortDeltaInPercent * 3 + 24
 
         if (this.liquidityLevel < 1) {
             cPS = 0
