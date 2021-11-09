@@ -299,7 +299,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             - 11
 
         if (this.isPreviousAdviceOlderThanXMinutes(Math.round(Math.random() * (4 - 1) + 1))) {
-            aPS = aPS / (this.liquidityLevel / 2)
+            aPS = aPS / (this.liquidityLevel / 2.4)
         }
 
         if (this.liquidityLevel < 9) {
@@ -317,8 +317,8 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             Math.abs(this.longShortDeltaInPercent) * 7 + 45 :
             36
 
-        if (this.liquidityLevel < 3) {
-            cPL = cPL / (10 - this.liquidityLevel)
+        if (this.liquidityLevel < 1) {
+            cPL = 0
         }
 
         return cPL
@@ -332,8 +332,8 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             this.longShortDeltaInPercent * 7 + 36 :
             24
 
-        if (this.liquidityLevel < 3) {
-            cPS = cPS / (10 - this.liquidityLevel)
+        if (this.liquidityLevel < 1) {
+            cPS = 0
         }
 
         return cPS
