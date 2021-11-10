@@ -279,9 +279,9 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             -11 :
             (Math.abs(this.longShortDeltaInPercent) * -4) - 11
 
-        if (this.isPreviousAdviceOlderThanXMinutes(5)) {
+        if (this.isPreviousAdviceOlderThanXMinutes(120)) {
             aPL = aPL / this.liquidityLevel
-        } else if (this.isPreviousAdviceOlderThanXMinutes(1)) {
+        } else if (this.isPreviousAdviceOlderThanXMinutes(60)) {
             aPL = aPL / (this.liquidityLevel / 2)
         }
 
@@ -300,9 +300,9 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
             - 11 :
             (Math.abs(this.longShortDeltaInPercent) * -7) - 11
 
-        if (this.isPreviousAdviceOlderThanXMinutes(5)) {
+        if (this.isPreviousAdviceOlderThanXMinutes(120)) {
             aPS = aPS / this.liquidityLevel
-        } else if (this.isPreviousAdviceOlderThanXMinutes(1)) {
+        } else if (this.isPreviousAdviceOlderThanXMinutes(60)) {
             aPS = aPS / (this.liquidityLevel / 2)
         }
 
