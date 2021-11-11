@@ -315,7 +315,7 @@ export class InvestmentAdvisorBTCLongShortExtreme implements IInvestmentAdvisor 
     protected getClosingPointLong(): number {
 
         let cPL = (this.longShortDeltaInPercent > 0) ?
-            48 :
+            42 :
             Math.abs(this.longShortDeltaInPercent) + 42
 
         if (this.liquidityLevel < 1) {
