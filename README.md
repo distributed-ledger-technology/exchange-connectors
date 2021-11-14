@@ -1,8 +1,8 @@
 # Exchange Connectors
 
-This module shall support the emergence of perfect markets by simplifying market access etc.
+This module shall support the emergence of perfect markets by simplifying market access etc.  
 
-To showcase the features at hand from a business perspective we introduce [**Volatility Farming**](https://openforce.de/) - hoping to set a trend here :)  
+This module is used a.o. by the [Volatility Farming Project](https://deno.land/x/vofarm).  
   
 **Volatility Farming** exploits unnecessary (manipulation induced) volatility and supports the emergence of a reasonable (fundamentals based) price stability - especially when it is done via DAOs with huge capital pools - open to people - supporting layer 0 :)  
 
