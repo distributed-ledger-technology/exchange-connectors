@@ -129,7 +129,7 @@ export class BybitConnector implements IExchangeConnector {
 
     private async getURL(endPoint: string) {
 
-        return `${this.baseURL}/${endPoint}`
+        return `${this.baseURL}${endPoint}`
 
     }
 
