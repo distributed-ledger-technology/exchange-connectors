@@ -121,7 +121,8 @@ export class BybitConnector implements IExchangeConnector {
         const queryForSign = `api_key=${this.apiKey}&timestamp=${timestamp}`
         const sign = GeneralUtilityBox.getHMACFromQuery(queryForSign, this.apiSecret)
 
-        return `${this.baseURL}/${endPoint}?api_key=${this.apiKey}&timestamp=${timestamp}&sign=${sign}`
+        // return `${this.baseURL}/${endPoint}?api_key=${this.apiKey}&timestamp=${timestamp}&sign=${sign}`
+        return `${this.baseURL}${endPoint}?api_key=${this.apiKey}&timestamp=${timestamp}&sign=${sign}`
 
     }
 
