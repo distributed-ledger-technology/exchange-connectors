@@ -1,10 +1,17 @@
 import { assertEquals, fail } from "https://deno.land/std@0.123.0/testing/asserts.ts"
 import { DyDxConnector } from "./dydx-connector.ts"
 
-Deno.test("should retrieve account balance = wallet balance for 0xD6C2DD6B5A5a3A58765eDcdcd6c2768f5cdFd6D4", async () => {
+const dydxConnector = new DyDxConnector()
+const testWallet = "0xD6C2DD6B5A5a3A58765eDcdcd6c2768f5cdFd6D4"
 
-    const testWallet = "0xD6C2DD6B5A5a3A58765eDcdcd6c2768f5cdFd6D4"
-    const dydxConnector = new DyDxConnector()
+Deno.test("should check if a user exists with wallet 0xD6C2DD6B5A5a3A58765eDcdcd6c2768f5cdFd6D4", async () => {
+
+    const userExists = await dydxConnector.checkUserExists(testWallet)
+    assertEquals(userExists, true)
+
+})
+
+Deno.test("should retrieve account balance = wallet balance for 0xD6C2DD6B5A5a3A58765eDcdcd6c2768f5cdFd6D4", async () => {
 
     let actualBalance
     let expectedBalance = 0
@@ -21,8 +28,6 @@ Deno.test("should retrieve account balance = wallet balance for 0xD6C2DD6B5A5a3A
 
 
 Deno.test("should return market data", async () => {
-
-    const dydxConnector = new DyDxConnector()
 
     const result = await dydxConnector.getMarketData()
 

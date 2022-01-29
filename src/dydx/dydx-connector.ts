@@ -6,6 +6,18 @@ export class DyDxConnector {
     private client: any
     private baseURL = "https://api.stage.dydx.exchange"
 
+    public constructor() {
+    }
+
+    public async checkUserExists(walletAddress: string): Promise<boolean> {
+        const url = `${this.baseURL}/v3/users/exists?ethereumAddress=${walletAddress}`
+
+        const result = await Request.get(url)
+
+        return (result as any).exists
+    }
+
+
     public async getMarketData(): Promise<any> {
 
         const url = `${this.baseURL}/v3/markets`
@@ -16,8 +28,6 @@ export class DyDxConnector {
 
     }
 
-    public constructor() {
-    }
 
     public getBalance(testWallet: string): number {
         return 0
