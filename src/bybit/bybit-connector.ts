@@ -105,7 +105,7 @@ export class BybitConnector implements IExchangeConnector {
 
         const timestamp = (Date.now()).toString()
         const url = await this.getURL(postEndPoints[4])
-        const queryForSign = `api_key=${this.apiKey}&side=${side}&stop_loss=${stopLoss}&symbol=${pair}timestamp=${timestamp}`
+        const queryForSign = `api_key=${this.apiKey}&side=${side}&stop_loss=${stopLoss}&symbol=${pair}&timestamp=${timestamp}`
         const sign = GeneralUtilityBox.getHMACFromQuery(queryForSign, this.apiSecret)
         const body = { "api_key": this.apiKey, "symbol": pair, "side": side, "stop_loss": stopLoss, "timestamp": timestamp, "sign": sign }
 
