@@ -52,7 +52,7 @@ export class BybitConnector implements IExchangeConnector {
 
         const url = `${this.baseURL}${getEndPoints[3]}?api_key=${this.apiKey}&symbol=${symbol}&timestamp=${timestamp}&sign=${sign}`
 
-        const result = Request.get(url)
+        const result = await Request.get(url)
 
         return result
 
