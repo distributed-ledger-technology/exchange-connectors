@@ -44,8 +44,9 @@ export class BybitConnector implements IExchangeConnector {
         return this.accountId
     }
 
-    public async getOrderList() {
-        const url = await this.getURLSigned(getEndPoints[3])
+    public async getOrderList(symbol: string) {
+        const url = `${await this.getURLSigned(getEndPoints[3])}&symbol=${symbol}`
+        console.log(`calling ${url}`)
         const result = await Request.get(url)
 
         return result
