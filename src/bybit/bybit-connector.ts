@@ -46,6 +46,7 @@ export class BybitConnector implements IExchangeConnector {
 
     public async getOrderList(symbol: string) {
         const timestamp = (Date.now()).toString()
+        console.log(`checking orders for ${symbol}`)
         const queryForSign = `api_key=${this.apiKey}&symbol=${symbol}&timestamp=${timestamp}`
         const sign = GeneralUtilityBox.getHMACFromQuery(queryForSign, this.apiSecret)
 
