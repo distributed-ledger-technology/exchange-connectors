@@ -9,6 +9,7 @@ export enum getEndPoints {
     "/v2/private/wallet/balance",
     "/private/linear/position/list",
     "/v2/public/risk-limit/list",
+    "/v2/private/order/list"
 }
 
 export enum postEndPoints {
@@ -43,6 +44,13 @@ export class BybitConnector implements IExchangeConnector {
         return this.accountId
     }
 
+    public async getOrderList() {
+        const url = await this.getURLSigned(getEndPoints[3])
+        const result = await Request.get(url)
+
+        return result
+
+    }
 
     public async getFuturesAccountData() {
         const url = await this.getURLSigned(getEndPoints[0])
