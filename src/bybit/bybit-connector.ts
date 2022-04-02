@@ -16,7 +16,8 @@ export enum postEndPoints {
     "/v2/public/risk-limit/list",
     "/private/linear/order/create",
     "/asset/v1/private/transfer",
-    "/private/linear/position/trading-stop"
+    "/private/linear/position/trading-stop",
+    "/v2/private/order/cancelAll"
 }
 
 
@@ -108,6 +109,23 @@ export class BybitConnector implements IExchangeConnector {
         const queryForSign = `api_key=${this.apiKey}&side=${side}&stop_loss=${stopLoss}&symbol=${pair}&timestamp=${timestamp}`
         const sign = GeneralUtilityBox.getHMACFromQuery(queryForSign, this.apiSecret)
         const body = { "api_key": this.apiKey, "symbol": pair, "side": side, "stop_loss": stopLoss, "timestamp": timestamp, "sign": sign }
+
+        console.log("body:", JSON.stringify(body))
+
+        const r = await Request.post(url, body)
+        // console.log(r)
+
+        return r
+
+    }
+
+    public async cancelAllActiveOrders(pair: string) {
+
+        const timestamp = (Date.now()).toString()
+        const url = await this.getURL(postEndPoints[5])
+        const queryForSign = `api_key=${this.apiKey}&symbol=${pair}&timestamp=${timestamp}`
+        const sign = GeneralUtilityBox.getHMACFromQuery(queryForSign, this.apiSecret)
+        const body = { "api_key": this.apiKey, "symbol": pair, "timestamp": timestamp, "sign": sign }
 
         console.log("body:", JSON.stringify(body))
 
